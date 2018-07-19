@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Altitude</string>
+    <string name="placeholder">-</string>
+    <string name="request_location">Request location</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="accuracy">Accuracy</string>
+    <string name="altitude">Altitude</string>
+    <string name="altitude_real">Altitude real</string>
+    <string name="vertical_accuracy">Vertical accuracy</string>
+    <string name="provider">Provider</string>
+    <string name="speed">Speed</string>
+    <string name="satellites">Satellites</string>
+</resources>

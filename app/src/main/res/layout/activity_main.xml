@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cz.milan_kostak.altitude.MainActivity">
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="@string/request_location" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button"
+        android:layout_marginBottom="10sp"
+        android:layout_marginTop="10sp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/placeholder"
+        android:textSize="25sp" />
+
+    <!-- Latitude -->
+    <TextView
+        android:id="@+id/lbLatitude"
+        style="@style/LabelTextView"
+        android:layout_below="@id/tvTime"
+        android:layout_toStartOf="@id/tvLatitude"
+        android:text="@string/latitude" />
+
+    <TextView
+        android:id="@+id/tvLatitude"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvTime"
+        android:text="@string/placeholder" />
+
+    <!-- Longitude -->
+    <TextView
+        android:id="@+id/lbLongitude"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbLatitude"
+        android:text="@string/longitude" />
+
+    <TextView
+        android:id="@+id/tvLongitude"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvLatitude"
+        android:text="@string/placeholder" />
+
+    <!-- Accuracy -->
+    <TextView
+        android:id="@+id/lbAccuracy"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbLongitude"
+        android:text="@string/accuracy" />
+
+    <TextView
+        android:id="@+id/tvAccuracy"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvLongitude"
+        android:text="@string/placeholder" />
+
+    <!-- Altitude -->
+    <TextView
+        android:id="@+id/lbAltitude"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbAccuracy"
+        android:text="@string/altitude" />
+
+    <TextView
+        android:id="@+id/tvAltitude"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvAccuracy"
+        android:text="@string/placeholder" />
+
+    <!-- Altitude real -->
+    <TextView
+        android:id="@+id/lbAltitudeReal"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbAltitude"
+        android:text="@string/altitude_real" />
+
+    <TextView
+        android:id="@+id/tvAltitudeReal"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvAltitude"
+        android:text="@string/placeholder" />
+
+    <!-- Vertical Accuracy -->
+    <TextView
+        android:id="@+id/lbVerticalAccuracy"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbAltitudeReal"
+        android:text="@string/vertical_accuracy" />
+
+    <TextView
+        android:id="@+id/tvVerticalAccuracy"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvAltitudeReal"
+        android:text="@string/placeholder" />
+
+    <!-- Provider -->
+    <TextView
+        android:id="@+id/lbProvider"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbVerticalAccuracy"
+        android:text="@string/provider" />
+
+    <TextView
+        android:id="@+id/tvProvider"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvVerticalAccuracy"
+        android:text="@string/placeholder" />
+
+    <!-- Speed -->
+    <TextView
+        android:id="@+id/lbSpeed"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbProvider"
+        android:text="@string/speed" />
+
+    <TextView
+        android:id="@+id/tvSpeed"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvProvider"
+        android:text="@string/placeholder" />
+
+    <!-- Satellites -->
+    <TextView
+        android:id="@+id/lbSatellites"
+        style="@style/LabelTextView"
+        android:layout_below="@id/lbSpeed"
+        android:text="@string/satellites" />
+
+    <TextView
+        android:id="@+id/tvSatellites"
+        style="@style/ContentTextView"
+        android:layout_below="@id/tvSpeed"
+        android:text="@string/placeholder" />
+
+</RelativeLayout>

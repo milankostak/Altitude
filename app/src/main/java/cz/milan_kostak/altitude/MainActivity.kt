@@ -9,6 +9,8 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import java.io.BufferedInputStream
@@ -79,6 +81,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_save -> {
+            // User chose the "Settings" item, show the app settings UI...
+            true
+        }
+
+        R.id.action_show -> {
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
+    }
+
     private fun setLocationToWindow(location: Location) {
         val dateTimeString = dateTimeFormat.format(Date(location.time))
         tvTime.text = dateTimeString
@@ -116,7 +140,7 @@ class MainActivity : AppCompatActivity() {
     private fun getRealAltitude(location: Location) {
         try {
             val altitude = RetrieveAltitudeTask().execute(location.latitude.toString(), location.longitude.toString()).get()
-            val altitudeReal = location.altitude - altitude!!
+            val altitudeReal = location.altitude - altitude
             tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
         } catch (e: InterruptedException) {
             e.printStackTrace()

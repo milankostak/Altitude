@@ -1,6 +1,7 @@
 package cz.milan_kostak.altitude
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -53,6 +54,8 @@ class MainActivity : AppCompatActivity() {
     private val degreesFormat = DecimalFormat("0°")
     private val plainIntegerFormat = DecimalFormat("0")
 
+    private val PERMISSIONS_REQUEST_LOCATION = 10
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -72,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         tvSatellites = findViewById(R.id.tvSatellites)
 
         val button = findViewById<Button>(R.id.button)
-        button.setOnClickListener { updatePosition() }
+        button.setOnClickListener { updatePositionButtonHandler() }
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         listener = object : LocationListener {
@@ -171,13 +174,33 @@ class MainActivity : AppCompatActivity() {
         getRealAltitude(location)
     }
 
-    private fun updatePosition() {
+    @SuppressLint("MissingPermission")
+    private fun requestPositionUpdate() {
+        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, null)
+        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, listener);
+    }
+
+    private fun updatePositionButtonHandler() {
         // first check for permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET), 10)
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET), PERMISSIONS_REQUEST_LOCATION)
         } else {
-            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, null)
-            //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, listener);
+            requestPositionUpdate()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSIONS_REQUEST_LOCATION -> {
+                // if request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    requestPositionUpdate()
+                }
+                return
+            }
+            else -> {
+                // Ignore all other requests.
+            }
         }
     }
 
@@ -194,7 +217,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: ExecutionException) {
             e.printStackTrace()
         }
-
     }
 }
 

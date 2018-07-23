@@ -136,17 +136,43 @@
                 android:layout_below="@id/tvSpeed"
                 android:text="@string/placeholder" />
 
+            <!-- Bearing -->
+            <TextView
+                android:id="@+id/lbBearing"
+                style="@style/LabelTextView"
+                android:layout_below="@id/lbSpeedAccuracy"
+                android:text="@string/bearing" />
+
+            <TextView
+                android:id="@+id/tvBearing"
+                style="@style/ContentTextView"
+                android:layout_below="@id/tvSpeedAccuracy"
+                android:text="@string/placeholder" />
+
+            <!-- Bearing accuracy -->
+            <TextView
+                android:id="@+id/lbBearingAccuracy"
+                style="@style/LabelTextViewMarginBottom"
+                android:layout_below="@id/lbBearing"
+                android:text="@string/bearing_accuracy" />
+
+            <TextView
+                android:id="@+id/tvBearingAccuracy"
+                style="@style/ContentTextViewMarginBottom"
+                android:layout_below="@id/tvBearing"
+                android:text="@string/placeholder" />
+
             <!-- Provider -->
             <TextView
                 android:id="@+id/lbProvider"
                 style="@style/LabelTextView"
-                android:layout_below="@id/lbSpeedAccuracy"
+                android:layout_below="@id/lbBearingAccuracy"
                 android:text="@string/provider" />
 
             <TextView
                 android:id="@+id/tvProvider"
                 style="@style/ContentTextView"
-                android:layout_below="@id/tvSpeedAccuracy"
+                android:layout_below="@id/tvBearingAccuracy"
                 android:text="@string/placeholder" />
 
             <!-- Satellites -->

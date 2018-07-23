@@ -37,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvVerticalAccuracy: TextView
     private lateinit var tvSpeed: TextView
     private lateinit var tvSpeedAccuracy: TextView
+    private lateinit var tvBearing: TextView
+    private lateinit var tvBearingAccuracy: TextView
     private lateinit var tvProvider: TextView
     private lateinit var tvSatellites: TextView
 
@@ -48,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private val altitudeFormat = DecimalFormat("0.0 m")
     private val accuracyFormat = DecimalFormat("0 m")
     private val speedFormat = DecimalFormat("0.00 km/h")
+    private val degreesFormat = DecimalFormat("0°")
     private val plainIntegerFormat = DecimalFormat("0")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +66,8 @@ class MainActivity : AppCompatActivity() {
         tvVerticalAccuracy = findViewById(R.id.tvVerticalAccuracy)
         tvSpeed = findViewById(R.id.tvSpeed)
         tvSpeedAccuracy = findViewById(R.id.tvSpeedAccuracy)
+        tvBearing = findViewById(R.id.tvBearing)
+        tvBearingAccuracy = findViewById(R.id.tvBearingAccuracy)
         tvProvider = findViewById(R.id.tvProvider)
         tvSatellites = findViewById(R.id.tvSatellites)
 
@@ -137,6 +142,17 @@ class MainActivity : AppCompatActivity() {
             tvSpeedAccuracy.text = speedFormat.format(location.speedAccuracyMetersPerSecond * 3.6)
         } else {
             tvSpeedAccuracy.text = "-"
+        }
+
+        if (location.hasBearing()) {
+            tvBearing.text = degreesFormat.format(location.bearing)
+        } else {
+            tvBearing.text = "-"
+        }
+        if (location.hasBearingAccuracy()) {
+            tvBearingAccuracy.text = degreesFormat.format(location.bearingAccuracyDegrees)
+        } else {
+            tvBearingAccuracy.text = "-"
         }
 
         tvProvider.text = location.provider

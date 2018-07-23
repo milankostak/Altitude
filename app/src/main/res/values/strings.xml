@@ -10,6 +10,8 @@
     <string name="vertical_accuracy">Vertical accuracy</string>
     <string name="speed">Speed</string>
     <string name="speed_accuracy">Speed accuracy</string>
+    <string name="bearing">Bearing</string>
+    <string name="bearing_accuracy">Bearing accuracy</string>
     <string name="provider">Provider</string>
     <string name="satellites">Satellites</string>
 

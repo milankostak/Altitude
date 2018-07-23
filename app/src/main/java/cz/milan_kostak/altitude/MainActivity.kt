@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         val dateTimeString = dateTimeFormat.format(Date(location.time))
         tvTime.text = dateTimeString
 
+        // latitude and longitude
         tvLatitude.text = coordinatesFormat.format(location.latitude)
         tvLongitude.text = coordinatesFormat.format(location.longitude)
         if (location.hasAccuracy()) {
@@ -122,6 +123,7 @@ class MainActivity : AppCompatActivity() {
             tvAccuracy.text = "-"
         }
 
+        // altitude in meters above the WGS 84 reference ellipsoid.
         if (location.hasAltitude()) {
             tvAltitude.text = altitudeFormat.format(location.altitude)
         } else {
@@ -133,6 +135,7 @@ class MainActivity : AppCompatActivity() {
             tvVerticalAccuracy.text = "-"
         }
 
+        // speed in m/s
         if (location.hasSpeed()) {
             tvSpeed.text = speedFormat.format(location.speed * 3.6)
         } else {
@@ -144,6 +147,7 @@ class MainActivity : AppCompatActivity() {
             tvSpeedAccuracy.text = "-"
         }
 
+        // bearing in the range (0.0, 360.0]
         if (location.hasBearing()) {
             tvBearing.text = degreesFormat.format(location.bearing)
         } else {
@@ -155,6 +159,7 @@ class MainActivity : AppCompatActivity() {
             tvBearingAccuracy.text = "-"
         }
 
+        // name of the provider that generated this fix
         tvProvider.text = location.provider
         if (location.extras.containsKey("satellites")) {
             val satellitesObject = location.extras.get("satellites")
@@ -176,6 +181,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Get and set real altitude converted from WGS 84 reference ellipsoid to WGS 84 geoid.
+     */
     private fun getRealAltitude(location: Location) {
         try {
             val altitude = RetrieveAltitudeTask().execute(location.latitude.toString(), location.longitude.toString()).get()

@@ -35,8 +35,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvAltitude: TextView
     private lateinit var tvAltitudeReal: TextView
     private lateinit var tvVerticalAccuracy: TextView
-    private lateinit var tvProvider: TextView
     private lateinit var tvSpeed: TextView
+    private lateinit var tvSpeedAccuracy: TextView
+    private lateinit var tvProvider: TextView
     private lateinit var tvSatellites: TextView
 
     private lateinit var locationManager: LocationManager
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private val coordinatesFormat = DecimalFormat("0.00000000°")
     private val altitudeFormat = DecimalFormat("0.0 m")
     private val accuracyFormat = DecimalFormat("0 m")
-    private val speedFormat = DecimalFormat("0.00 m/s")
+    private val speedFormat = DecimalFormat("0.00 km/h")
     private val plainIntegerFormat = DecimalFormat("0")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,8 +61,9 @@ class MainActivity : AppCompatActivity() {
         tvAltitude = findViewById(R.id.tvAltitude)
         tvAltitudeReal = findViewById(R.id.tvAltitudeReal)
         tvVerticalAccuracy = findViewById(R.id.tvVerticalAccuracy)
-        tvProvider = findViewById(R.id.tvProvider)
         tvSpeed = findViewById(R.id.tvSpeed)
+        tvSpeedAccuracy = findViewById(R.id.tvSpeedAccuracy)
+        tvProvider = findViewById(R.id.tvProvider)
         tvSatellites = findViewById(R.id.tvSatellites)
 
         val button = findViewById<Button>(R.id.button)
@@ -109,14 +111,35 @@ class MainActivity : AppCompatActivity() {
 
         tvLatitude.text = coordinatesFormat.format(location.latitude)
         tvLongitude.text = coordinatesFormat.format(location.longitude)
-        tvAccuracy.text = accuracyFormat.format(location.accuracy)
+        if (location.hasAccuracy()) {
+            tvAccuracy.text = accuracyFormat.format(location.accuracy)
+        } else {
+            tvAccuracy.text = "-"
+        }
 
-        tvAltitude.text = altitudeFormat.format(location.altitude)
-        tvVerticalAccuracy.text = accuracyFormat.format(location.verticalAccuracyMeters)
+        if (location.hasAltitude()) {
+            tvAltitude.text = altitudeFormat.format(location.altitude)
+        } else {
+            tvAltitude.text = "-"
+        }
+        if (location.hasVerticalAccuracy()) {
+            tvVerticalAccuracy.text = accuracyFormat.format(location.verticalAccuracyMeters)
+        } else {
+            tvVerticalAccuracy.text = "-"
+        }
+
+        if (location.hasSpeed()) {
+            tvSpeed.text = speedFormat.format(location.speed * 3.6)
+        } else {
+            tvSpeed.text = "-"
+        }
+        if (location.hasSpeedAccuracy()) {
+            tvSpeedAccuracy.text = speedFormat.format(location.speedAccuracyMetersPerSecond * 3.6)
+        } else {
+            tvSpeedAccuracy.text = "-"
+        }
 
         tvProvider.text = location.provider
-        tvSpeed.text = speedFormat.format(location.speed)
-
         if (location.extras.containsKey("satellites")) {
             val satellitesObject = location.extras.get("satellites")
             if (satellitesObject is Int) {

@@ -110,43 +110,56 @@
                 android:layout_below="@id/tvAltitudeReal"
                 android:text="@string/placeholder" />
 
-            <!-- Provider -->
-            <TextView
-                android:id="@+id/lbProvider"
-                style="@style/LabelTextView"
-                android:layout_below="@id/lbVerticalAccuracy"
-                android:text="@string/provider" />
-
-            <TextView
-                android:id="@+id/tvProvider"
-                style="@style/ContentTextView"
-                android:layout_below="@id/tvVerticalAccuracy"
-                android:text="@string/placeholder" />
-
             <!-- Speed -->
             <TextView
                 android:id="@+id/lbSpeed"
                 style="@style/LabelTextView"
-                android:layout_below="@id/lbProvider"
+                android:layout_below="@id/lbVerticalAccuracy"
                 android:text="@string/speed" />
 
             <TextView
                 android:id="@+id/tvSpeed"
                 style="@style/ContentTextView"
-                android:layout_below="@id/tvProvider"
+                android:layout_below="@id/tvVerticalAccuracy"
+                android:text="@string/placeholder" />
+
+            <!-- Speed accuracy -->
+            <TextView
+                android:id="@+id/lbSpeedAccuracy"
+                style="@style/LabelTextViewMarginBottom"
+                android:layout_below="@id/lbSpeed"
+                android:text="@string/speed_accuracy" />
+
+            <TextView
+                android:id="@+id/tvSpeedAccuracy"
+                style="@style/ContentTextViewMarginBottom"
+                android:layout_below="@id/tvSpeed"
+                android:text="@string/placeholder" />
+
+            <!-- Provider -->
+            <TextView
+                android:id="@+id/lbProvider"
+                style="@style/LabelTextView"
+                android:layout_below="@id/lbSpeedAccuracy"
+                android:text="@string/provider" />
+
+            <TextView
+                android:id="@+id/tvProvider"
+                style="@style/ContentTextView"
+                android:layout_below="@id/tvSpeedAccuracy"
                 android:text="@string/placeholder" />
 
             <!-- Satellites -->
             <TextView
                 android:id="@+id/lbSatellites"
                 style="@style/LabelTextView"
-                android:layout_below="@id/lbSpeed"
+                android:layout_below="@id/lbProvider"
                 android:text="@string/satellites" />
 
             <TextView
                 android:id="@+id/tvSatellites"
                 style="@style/ContentTextView"
-                android:layout_below="@id/tvSpeed"
+                android:layout_below="@id/tvProvider"
                 android:text="@string/placeholder" />
         </RelativeLayout>
     </ScrollView>

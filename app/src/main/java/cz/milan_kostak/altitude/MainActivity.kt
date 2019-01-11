@@ -2,6 +2,7 @@ package cz.milan_kostak.altitude
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -14,6 +15,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
+import com.raizlabs.android.dbflow.config.FlowConfig
+import com.raizlabs.android.dbflow.config.FlowManager
+import cz.milan_kostak.altitude.model.LocationItem
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.IOException
@@ -22,7 +27,6 @@ import java.net.URL
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ExecutionException
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 import javax.net.ssl.HttpsURLConnection
@@ -54,11 +58,17 @@ class MainActivity : AppCompatActivity() {
     private val degreesFormat = DecimalFormat("0°")
     private val plainIntegerFormat = DecimalFormat("0")
 
+    private var currentLocationItem: LocationItem? = null
+
     private val PERMISSIONS_REQUEST_LOCATION = 10
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // This instantiates DBFlow
+        FlowManager.init(FlowConfig.Builder(this).build())
+        //FlowManager.getDatabase(DatabaseModel::class.java).reset(this)
 
         tvTime = findViewById(R.id.tvTime)
         tvLatitude = findViewById(R.id.tvLatitude)
@@ -80,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                setLocationToWindow(location)
+                setLocation(location)
             }
 
             override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {}
@@ -98,7 +108,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_save -> {
-            // User chose the "Settings" item, show the app settings UI...
+            if (currentLocationItem != null) {
+                if (currentLocationItem!!.save()) {
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Not saved!", Toast.LENGTH_SHORT).show()
+                }
+            }
+
             true
         }
 
@@ -113,57 +130,60 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLocationToWindow(location: Location) {
-        val dateTimeString = dateTimeFormat.format(Date(location.time))
-        tvTime.text = dateTimeString
+    private fun setLocation(location: Location) {
+        currentLocationItem = LocationItem()
 
-        // latitude and longitude
-        tvLatitude.text = coordinatesFormat.format(location.latitude)
-        tvLongitude.text = coordinatesFormat.format(location.longitude)
+        currentLocationItem?.name = "temp"
+
+        currentLocationItem?.time = location.time
+        currentLocationItem?.latitude = location.latitude
+        currentLocationItem?.longitude = location.longitude
+
         if (location.hasAccuracy()) {
-            tvAccuracy.text = accuracyFormat.format(location.accuracy)
+            currentLocationItem?.accuracy = location.accuracy
         } else {
-            tvAccuracy.text = "-"
+            currentLocationItem?.accuracy = -1f
         }
 
         // altitude in meters above the WGS 84 reference ellipsoid.
         if (location.hasAltitude()) {
-            tvAltitude.text = altitudeFormat.format(location.altitude)
+            currentLocationItem?.altitude = location.altitude
         } else {
-            tvAltitude.text = "-"
+            currentLocationItem?.altitude = -10000.0
         }
+        currentLocationItem?.altitudeReal = -10000.0
+
         if (location.hasVerticalAccuracy()) {
-            tvVerticalAccuracy.text = accuracyFormat.format(location.verticalAccuracyMeters)
+            currentLocationItem?.verticalAccuracy = location.verticalAccuracyMeters
         } else {
-            tvVerticalAccuracy.text = "-"
+            currentLocationItem?.verticalAccuracy = -1f
         }
 
         // speed in m/s
         if (location.hasSpeed()) {
-            tvSpeed.text = speedFormat.format(location.speed * 3.6)
+            currentLocationItem?.speed = location.speed * 3.6f
         } else {
-            tvSpeed.text = "-"
+            currentLocationItem?.speed = -1f
         }
         if (location.hasSpeedAccuracy()) {
-            tvSpeedAccuracy.text = speedFormat.format(location.speedAccuracyMetersPerSecond * 3.6)
+            currentLocationItem?.speedAccuracy = location.speedAccuracyMetersPerSecond * 3.6f
         } else {
-            tvSpeedAccuracy.text = "-"
+            currentLocationItem?.speedAccuracy = -1f
         }
 
-        // bearing in the range (0.0, 360.0]
         if (location.hasBearing()) {
-            tvBearing.text = degreesFormat.format(location.bearing)
+            currentLocationItem?.bearing = location.bearing
         } else {
-            tvBearing.text = "-"
+            currentLocationItem?.bearing = -1f
         }
         if (location.hasBearingAccuracy()) {
-            tvBearingAccuracy.text = degreesFormat.format(location.bearingAccuracyDegrees)
+            currentLocationItem?.bearingAccuracy = location.bearingAccuracyDegrees
         } else {
-            tvBearingAccuracy.text = "-"
+            currentLocationItem?.bearingAccuracy = -1f
         }
 
-        // name of the provider that generated this fix
-        tvProvider.text = location.provider
+        currentLocationItem?.provider = location.provider
+        currentLocationItem?.satellites = -1
         if (location.extras.containsKey("satellites")) {
             val satellitesObject = location.extras.get("satellites")
             if (satellitesObject is Int) {
@@ -171,7 +191,67 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        setLocationToWindow()
         getRealAltitude(location)
+    }
+
+    private fun setLocationToWindow() {
+        tvTime.text = dateTimeFormat.format(Date(currentLocationItem!!.time))
+
+        tvLatitude.text = coordinatesFormat.format(currentLocationItem?.latitude)
+        tvLongitude.text = coordinatesFormat.format(currentLocationItem?.longitude)
+
+        if (currentLocationItem!!.hasAccuracy()) {
+            tvAccuracy.text = accuracyFormat.format(currentLocationItem?.accuracy)
+        } else {
+            tvAccuracy.text = "-"
+        }
+
+        if (currentLocationItem!!.hasAltitude()) {
+            tvAltitude.text = altitudeFormat.format(currentLocationItem?.altitude)
+        } else {
+            tvAltitude.text = "-"
+        }
+        if (currentLocationItem!!.hasAltitudeReal()) {
+            tvAltitudeReal.text = altitudeFormat.format(currentLocationItem?.altitudeReal)
+        } else {
+            tvAltitudeReal.text = "-"
+        }
+        if (currentLocationItem!!.hasVerticalAccuracy()) {
+            tvVerticalAccuracy.text = accuracyFormat.format(currentLocationItem?.verticalAccuracy)
+        } else {
+            tvVerticalAccuracy.text = "-"
+        }
+
+        if (currentLocationItem!!.hasSpeed()) {
+            tvSpeed.text = speedFormat.format(currentLocationItem?.speed)
+        } else {
+            tvSpeed.text = "-"
+        }
+        if (currentLocationItem!!.hasSpeedAccuracy()) {
+            tvSpeedAccuracy.text = speedFormat.format(currentLocationItem?.speedAccuracy)
+        } else {
+            tvSpeedAccuracy.text = "-"
+        }
+
+        if (currentLocationItem!!.hasBearing()) {
+            tvBearing.text = degreesFormat.format(currentLocationItem?.bearing)
+        } else {
+            tvBearing.text = "-"
+        }
+        if (currentLocationItem!!.hasBearingAccuracy()) {
+            tvBearingAccuracy.text = degreesFormat.format(currentLocationItem?.bearingAccuracy)
+        } else {
+            tvBearingAccuracy.text = "-"
+        }
+
+        tvProvider.text = currentLocationItem?.provider
+
+        if (currentLocationItem!!.hasSatellites()) {
+            tvSatellites.text = plainIntegerFormat.format(currentLocationItem?.satellites)
+        } else {
+            tvSatellites.text = "-"
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -210,11 +290,15 @@ class MainActivity : AppCompatActivity() {
     private fun getRealAltitude(location: Location) {
         try {
             val altitude = RetrieveAltitudeTask().execute(location.latitude.toString(), location.longitude.toString()).get()
-            val altitudeReal = location.altitude - altitude
-            tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        } catch (e: ExecutionException) {
+            if (altitude != null) {
+                val altitudeReal = location.altitude - altitude
+                currentLocationItem?.altitudeReal = altitudeReal
+                tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
+            } else {
+                currentLocationItem?.altitudeReal = -10000.0
+                tvAltitudeReal.text = "-"
+            }
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -223,7 +307,7 @@ class MainActivity : AppCompatActivity() {
 
 internal class RetrieveAltitudeTask : AsyncTask<String, Void, Float>() {
 
-    override fun doInBackground(vararg params: String): Float {
+    override fun doInBackground(vararg params: String): Float? {
         var urlConnection: HttpsURLConnection? = null
         try {
             val url = URL("https://geographiclib.sourceforge.io/cgi-bin/GeoidEval?input=" + params[0] + "+" + params[1])
@@ -245,7 +329,7 @@ internal class RetrieveAltitudeTask : AsyncTask<String, Void, Float>() {
         } finally {
             urlConnection?.disconnect()
         }
-        return 0f
+        return null
     }
 
     override fun onPostExecute(altitude: Float?) {

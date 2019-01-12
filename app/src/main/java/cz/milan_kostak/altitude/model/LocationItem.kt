@@ -9,6 +9,9 @@ import com.raizlabs.android.dbflow.annotation.Column
 
 class LocationItem : BaseModel() {
 
+    var saved = false
+    var set = false
+
     @Column
     @PrimaryKey(autoincrement = true)
     var id: Int = 0
@@ -79,6 +82,9 @@ class LocationItem : BaseModel() {
 
     @Column
     var provider: String = ""
+    fun hasProvider(): Boolean {
+        return !provider.isEmpty()
+    }
 
     @Column
     var satellites: Int = -1

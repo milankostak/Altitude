@@ -6,30 +6,40 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="LabelTextView" parent="android:Theme.Light">
-        <item name="android:textSize">24sp</item>
-        <item name="android:layout_alignParentStart">true</item>
+    <style name="BasicLabel" parent="android:Theme.Light">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginLeft">16sp</item>
         <item name="android:layout_marginRight">16sp</item>
+    </style>
+
+    <style name="LabelTextView" parent="BasicLabel">
+        <item name="android:textSize">24sp</item>
+        <item name="android:layout_alignParentStart">true</item>
     </style>
 
     <style name="LabelTextViewMarginBottom" parent="LabelTextView">
         <item name="android:layout_marginBottom">16sp</item>
     </style>
 
-    <style name="ContentTextView" parent="android:Theme.Light">
+    <style name="ContentTextView" parent="BasicLabel">
         <item name="android:textSize">24sp</item>
         <item name="android:layout_alignParentEnd">true</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginLeft">16sp</item>
-        <item name="android:layout_marginRight">16sp</item>
     </style>
 
     <style name="ContentTextViewMarginBottom" parent="ContentTextView">
         <item name="android:layout_marginBottom">16sp</item>
+    </style>
+
+    <style name="BigLabel" parent="BasicLabel">
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="SmallLabel" parent="BasicLabel">
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
 </resources>

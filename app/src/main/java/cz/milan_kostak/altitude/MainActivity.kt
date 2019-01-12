@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationManager: LocationManager
     private lateinit var listener: LocationListener
 
-    private val dateTimeFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+    private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy HH:mm:ss", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.00000000°")
     private val altitudeFormat = DecimalFormat("0.0 m")
     private val accuracyFormat = DecimalFormat("0 m")
@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     private val degreesFormat = DecimalFormat("0°")
     private val plainIntegerFormat = DecimalFormat("0")
 
-    private var currentLocationItem: LocationItem? = null
+    private var currentLocationItem = LocationItem()
 
     private val PERMISSIONS_REQUEST_LOCATION = 10
 
@@ -108,8 +108,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_save -> {
-            if (currentLocationItem != null) {
-                if (currentLocationItem!!.save()) {
+            // is set but not saved
+            if (currentLocationItem.set && !currentLocationItem.saved) {
+                if (currentLocationItem.save()) {
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this, "Not saved!", Toast.LENGTH_SHORT).show()
@@ -134,58 +135,60 @@ class MainActivity : AppCompatActivity() {
 
     private fun setLocation(location: Location) {
         currentLocationItem = LocationItem()
+        currentLocationItem.set = true
+        currentLocationItem.saved = false
 
-        currentLocationItem?.name = "temp"
+        currentLocationItem.name = "temp"
 
-        currentLocationItem?.time = location.time
-        currentLocationItem?.latitude = location.latitude
-        currentLocationItem?.longitude = location.longitude
+        currentLocationItem.time = location.time
+        currentLocationItem.latitude = location.latitude
+        currentLocationItem.longitude = location.longitude
 
         if (location.hasAccuracy()) {
-            currentLocationItem?.accuracy = location.accuracy
+            currentLocationItem.accuracy = location.accuracy
         } else {
-            currentLocationItem?.accuracy = -1f
+            currentLocationItem.accuracy = -1f
         }
 
         // altitude in meters above the WGS 84 reference ellipsoid.
         if (location.hasAltitude()) {
-            currentLocationItem?.altitude = location.altitude
+            currentLocationItem.altitude = location.altitude
         } else {
-            currentLocationItem?.altitude = -10000.0
+            currentLocationItem.altitude = -10000.0
         }
-        currentLocationItem?.altitudeReal = -10000.0
+        currentLocationItem.altitudeReal = -10000.0
 
         if (location.hasVerticalAccuracy()) {
-            currentLocationItem?.verticalAccuracy = location.verticalAccuracyMeters
+            currentLocationItem.verticalAccuracy = location.verticalAccuracyMeters
         } else {
-            currentLocationItem?.verticalAccuracy = -1f
+            currentLocationItem.verticalAccuracy = -1f
         }
 
         // speed in m/s
         if (location.hasSpeed()) {
-            currentLocationItem?.speed = location.speed * 3.6f
+            currentLocationItem.speed = location.speed * 3.6f
         } else {
-            currentLocationItem?.speed = -1f
+            currentLocationItem.speed = -1f
         }
         if (location.hasSpeedAccuracy()) {
-            currentLocationItem?.speedAccuracy = location.speedAccuracyMetersPerSecond * 3.6f
+            currentLocationItem.speedAccuracy = location.speedAccuracyMetersPerSecond * 3.6f
         } else {
-            currentLocationItem?.speedAccuracy = -1f
+            currentLocationItem.speedAccuracy = -1f
         }
 
         if (location.hasBearing()) {
-            currentLocationItem?.bearing = location.bearing
+            currentLocationItem.bearing = location.bearing
         } else {
-            currentLocationItem?.bearing = -1f
+            currentLocationItem.bearing = -1f
         }
         if (location.hasBearingAccuracy()) {
-            currentLocationItem?.bearingAccuracy = location.bearingAccuracyDegrees
+            currentLocationItem.bearingAccuracy = location.bearingAccuracyDegrees
         } else {
-            currentLocationItem?.bearingAccuracy = -1f
+            currentLocationItem.bearingAccuracy = -1f
         }
 
-        currentLocationItem?.provider = location.provider
-        currentLocationItem?.satellites = -1
+        currentLocationItem.provider = location.provider
+        currentLocationItem.satellites = -1
         if (location.extras.containsKey("satellites")) {
             val satellitesObject = location.extras.get("satellites")
             if (satellitesObject is Int) {
@@ -198,59 +201,63 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setLocationToWindow() {
-        tvTime.text = dateTimeFormat.format(Date(currentLocationItem!!.time))
+        tvTime.text = dateTimeFormat.format(Date(currentLocationItem.time))
 
-        tvLatitude.text = coordinatesFormat.format(currentLocationItem?.latitude)
-        tvLongitude.text = coordinatesFormat.format(currentLocationItem?.longitude)
+        tvLatitude.text = coordinatesFormat.format(currentLocationItem.latitude)
+        tvLongitude.text = coordinatesFormat.format(currentLocationItem.longitude)
 
-        if (currentLocationItem!!.hasAccuracy()) {
-            tvAccuracy.text = accuracyFormat.format(currentLocationItem?.accuracy)
+        if (currentLocationItem.hasAccuracy()) {
+            tvAccuracy.text = accuracyFormat.format(currentLocationItem.accuracy)
         } else {
             tvAccuracy.text = "-"
         }
 
-        if (currentLocationItem!!.hasAltitude()) {
-            tvAltitude.text = altitudeFormat.format(currentLocationItem?.altitude)
+        if (currentLocationItem.hasAltitude()) {
+            tvAltitude.text = altitudeFormat.format(currentLocationItem.altitude)
         } else {
             tvAltitude.text = "-"
         }
-        if (currentLocationItem!!.hasAltitudeReal()) {
-            tvAltitudeReal.text = altitudeFormat.format(currentLocationItem?.altitudeReal)
+        if (currentLocationItem.hasAltitudeReal()) {
+            tvAltitudeReal.text = altitudeFormat.format(currentLocationItem.altitudeReal)
         } else {
             tvAltitudeReal.text = "-"
         }
-        if (currentLocationItem!!.hasVerticalAccuracy()) {
-            tvVerticalAccuracy.text = accuracyFormat.format(currentLocationItem?.verticalAccuracy)
+        if (currentLocationItem.hasVerticalAccuracy()) {
+            tvVerticalAccuracy.text = accuracyFormat.format(currentLocationItem.verticalAccuracy)
         } else {
             tvVerticalAccuracy.text = "-"
         }
 
-        if (currentLocationItem!!.hasSpeed()) {
-            tvSpeed.text = speedFormat.format(currentLocationItem?.speed)
+        if (currentLocationItem.hasSpeed()) {
+            tvSpeed.text = speedFormat.format(currentLocationItem.speed)
         } else {
             tvSpeed.text = "-"
         }
-        if (currentLocationItem!!.hasSpeedAccuracy()) {
-            tvSpeedAccuracy.text = speedFormat.format(currentLocationItem?.speedAccuracy)
+        if (currentLocationItem.hasSpeedAccuracy()) {
+            tvSpeedAccuracy.text = speedFormat.format(currentLocationItem.speedAccuracy)
         } else {
             tvSpeedAccuracy.text = "-"
         }
 
-        if (currentLocationItem!!.hasBearing()) {
-            tvBearing.text = degreesFormat.format(currentLocationItem?.bearing)
+        if (currentLocationItem.hasBearing()) {
+            tvBearing.text = degreesFormat.format(currentLocationItem.bearing)
         } else {
             tvBearing.text = "-"
         }
-        if (currentLocationItem!!.hasBearingAccuracy()) {
-            tvBearingAccuracy.text = degreesFormat.format(currentLocationItem?.bearingAccuracy)
+        if (currentLocationItem.hasBearingAccuracy()) {
+            tvBearingAccuracy.text = degreesFormat.format(currentLocationItem.bearingAccuracy)
         } else {
             tvBearingAccuracy.text = "-"
         }
 
-        tvProvider.text = currentLocationItem?.provider
+        if (currentLocationItem.hasProvider()) {
+            tvProvider.text = currentLocationItem.provider
+        } else {
+            tvProvider.text = "-"
+        }
 
-        if (currentLocationItem!!.hasSatellites()) {
-            tvSatellites.text = plainIntegerFormat.format(currentLocationItem?.satellites)
+        if (currentLocationItem.hasSatellites()) {
+            tvSatellites.text = plainIntegerFormat.format(currentLocationItem.satellites)
         } else {
             tvSatellites.text = "-"
         }
@@ -294,10 +301,10 @@ class MainActivity : AppCompatActivity() {
             val altitude = RetrieveAltitudeTask().execute(location.latitude.toString(), location.longitude.toString()).get()
             if (altitude != null) {
                 val altitudeReal = location.altitude - altitude
-                currentLocationItem?.altitudeReal = altitudeReal
+                currentLocationItem.altitudeReal = altitudeReal
                 tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
             } else {
-                currentLocationItem?.altitudeReal = -10000.0
+                currentLocationItem.altitudeReal = -10000.0
                 tvAltitudeReal.text = "-"
             }
         } catch (e: Exception) {

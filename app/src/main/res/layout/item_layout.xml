@@ -2,22 +2,34 @@
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp">
+    android:layout_margin="8dp">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="5dp">
+        android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/latitude"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:id="@+id/lbName"
+            style="@style/BigLabel"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/lbAltitude" />
 
         <TextView
-            android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:id="@+id/lbAltitude"
+            style="@style/BigLabel"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:id="@+id/lbDate"
+            style="@style/SmallLabel"
+            android:layout_below="@id/lbName"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/lbCoords"
+            style="@style/SmallLabel"
+            android:layout_below="@id/lbAltitude"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
 </android.support.v7.widget.CardView>

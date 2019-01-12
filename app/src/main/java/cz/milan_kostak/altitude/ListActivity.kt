@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import com.raizlabs.android.dbflow.sql.language.SQLite
-import cz.milan_kostak.altitude.model.LocationItem
 
 class ListActivity : AppCompatActivity() {
 
@@ -17,10 +15,10 @@ class ListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
-        val queryList = SQLite.select().from(LocationItem::class.java).queryList()
+        val queryList = DbHelper.getAllItems()
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = ListAdapter(queryList)
+        viewAdapter = ListAdapter(queryList, this)
 
         recyclerView = findViewById<RecyclerView>(R.id.locations_list).apply {
             setHasFixedSize(true)

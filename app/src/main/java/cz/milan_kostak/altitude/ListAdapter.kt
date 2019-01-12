@@ -1,6 +1,8 @@
 package cz.milan_kostak.altitude
 
 import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -10,9 +12,13 @@ import cz.milan_kostak.altitude.model.LocationItem
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import android.widget.Toast
 
-class ListAdapter(private val data: MutableList<LocationItem>) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+class ListAdapter(
+        private val data: MutableList<LocationItem>,
+        private val listActivity: ListActivity
+) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+
+
 
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.0°")
@@ -27,6 +33,26 @@ class ListAdapter(private val data: MutableList<LocationItem>) : RecyclerView.Ad
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_layout, parent, false)
+        val recyclerView = parent.findViewById<RecyclerView>(R.id.locations_list)
+        view.setOnClickListener {
+            val itemPosition = recyclerView.indexOfChild(view)
+            val item = data[itemPosition]
+
+            val intent = Intent()
+            intent.putExtra("locationId", item.id.toString())
+            listActivity.setResult(RESULT_OK, intent)
+            listActivity.finish()
+        }
+        view.setOnLongClickListener{
+            val itemPosition = recyclerView.indexOfChild(view)
+            val item = data[itemPosition]
+            if (DbHelper.getItemById(item.id)?.delete()!!) {
+                data.remove(item)
+                notifyDataSetChanged()
+            }
+
+            true // event is consumed and no further event handling is required
+        }
         return ViewHolder(view)
     }
 

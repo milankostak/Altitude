@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private var currentLocationItem = LocationItem()
 
     private val PERMISSIONS_REQUEST_LOCATION = 10
+    private val LIST_ACTIVITY_CODE = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,7 +123,7 @@ class MainActivity : AppCompatActivity() {
 
         R.id.action_show -> {
             val intent = Intent(this, ListActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, LIST_ACTIVITY_CODE)
             true
         }
 
@@ -130,6 +131,20 @@ class MainActivity : AppCompatActivity() {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
+        }
+    }
+
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == LIST_ACTIVITY_CODE) {
+            if (resultCode == RESULT_OK) {
+                val locationId = data!!.getStringExtra("locationId").toInt()
+                val locationItem = DbHelper.getItemById(locationId)
+                currentLocationItem = locationItem!!
+                currentLocationItem.saved = true
+                currentLocationItem.set = true
+                setLocationToWindow()
+            }
         }
     }
 

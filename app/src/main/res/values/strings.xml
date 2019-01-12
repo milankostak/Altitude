@@ -15,6 +15,6 @@
     <string name="provider">Provider</string>
     <string name="satellites">Satellites</string>
 
-    <string name="save_this">Save this</string>
-    <string name="show_saved">Show saved</string>
+    <string name="save_this">Save</string>
+    <string name="show_saved">Show all</string>
 </resources>

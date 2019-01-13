@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -353,6 +354,15 @@ class MainActivity : AppCompatActivity() {
             else -> {
                 // Ignore all other requests.
             }
+        }
+    }
+
+    fun openMap(view: View) {
+        if (currentLocationItem.set) {
+            val uri = "geo:" + currentLocationItem.latitude + "," + currentLocationItem.longitude
+            //val uri = "http://maps.google.com/maps?q=${currentLocationItem.latitude},${currentLocationItem.longitude}"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+            baseContext.startActivity(intent)
         }
     }
 

@@ -43,6 +43,7 @@
             <TextView
                 android:id="@+id/tvLatitude"
                 style="@style/ContentTextView"
+                android:onClick="openMap"
                 android:text="@string/placeholder" />
 
             <!-- Longitude -->
@@ -56,6 +57,7 @@
                 android:id="@+id/tvLongitude"
                 style="@style/ContentTextView"
                 android:layout_below="@id/tvLatitude"
+                android:onClick="openMap"
                 android:text="@string/placeholder" />
 
             <!-- Accuracy -->

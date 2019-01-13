@@ -62,7 +62,7 @@ class ListAdapter(
         if (data[position].hasAltitudeReal()) {
             viewHolder.lbAltitude.text = altitudeFormat.format(data[position].altitudeReal)
         } else {
-            viewHolder.lbAltitude.text = altitudeFormat.format(data[position].altitude)
+            viewHolder.lbAltitude.text = "~" + altitudeFormat.format(data[position].altitude)
         }
         viewHolder.lbDate.text = dateTimeFormat.format(data[position].time)
         viewHolder.lbCoordinates.text = coordinatesFormat.format(data[position].latitude) + "  " + coordinatesFormat.format(data[position].longitude)

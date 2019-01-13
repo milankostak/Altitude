@@ -152,8 +152,7 @@ class MainActivity : AppCompatActivity() {
         currentLocationItem = LocationItem()
         currentLocationItem.set = true
         currentLocationItem.saved = false
-
-        currentLocationItem.name = "temp"
+        currentLocationItem.name = ""
 
         currentLocationItem.time = location.time
         currentLocationItem.latitude = location.latitude

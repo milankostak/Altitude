@@ -3,6 +3,7 @@ package cz.milan_kostak.altitude
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -17,8 +18,6 @@ class ListAdapter(
         private val data: MutableList<LocationItem>,
         private val listActivity: ListActivity
 ) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
-
-
 
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.0°")
@@ -43,13 +42,19 @@ class ListAdapter(
             listActivity.setResult(RESULT_OK, intent)
             listActivity.finish()
         }
-        view.setOnLongClickListener{
-            val itemPosition = recyclerView.indexOfChild(view)
-            val item = data[itemPosition]
-            if (DbHelper.getItemById(item.id)?.delete()!!) {
-                data.remove(item)
-                notifyDataSetChanged()
+        view.setOnLongClickListener {
+            val builder = AlertDialog.Builder(parent.context)
+            builder.setTitle("Confirm delete")
+            builder.setPositiveButton("Delete") { _, _ ->
+                val itemPosition = recyclerView.indexOfChild(view)
+                val item = data[itemPosition]
+                if (DbHelper.getItemById(item.id)?.delete()!!) {
+                    data.remove(item)
+                    notifyDataSetChanged()
+                }
             }
+            builder.setNegativeButton("Cancel", null)
+            builder.show()
 
             true // event is consumed and no further event handling is required
         }

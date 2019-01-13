@@ -2,6 +2,7 @@
     <string name="app_name">Altitude</string>
     <string name="placeholder">-</string>
     <string name="request_location">Request location</string>
+    <string name="stop_request">Stop request</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
     <string name="accuracy">Accuracy</string>

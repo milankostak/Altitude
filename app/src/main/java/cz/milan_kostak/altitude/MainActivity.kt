@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity
 import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import android.widget.*
 import com.raizlabs.android.dbflow.config.FlowConfig
@@ -34,6 +35,9 @@ import java.util.stream.Collectors
 import javax.net.ssl.HttpsURLConnection
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var loadingIcon: ProgressBar
+    private lateinit var btRequestPosition: Button
 
     private lateinit var tvTime: TextView
     private lateinit var tvLatitude: TextView
@@ -61,6 +65,7 @@ class MainActivity : AppCompatActivity() {
     private val plainIntegerFormat = DecimalFormat("0")
 
     private var currentLocationItem = LocationItem()
+    private var requestInProgress: Boolean = false
 
     private val PERMISSIONS_REQUEST_LOCATION = 10
     private val LIST_ACTIVITY_CODE = 1
@@ -73,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         FlowManager.init(FlowConfig.Builder(this).build())
         //FlowManager.getDatabase(DatabaseModel::class.java).reset(this)
 
+        loadingIcon = findViewById(R.id.loadingIcon)
         tvTime = findViewById(R.id.tvTime)
         tvLatitude = findViewById(R.id.tvLatitude)
         tvLongitude = findViewById(R.id.tvLongitude)
@@ -87,12 +93,15 @@ class MainActivity : AppCompatActivity() {
         tvProvider = findViewById(R.id.tvProvider)
         tvSatellites = findViewById(R.id.tvSatellites)
 
-        val button = findViewById<Button>(R.id.button)
-        button.setOnClickListener { updatePositionButtonHandler() }
+        btRequestPosition = findViewById(R.id.btRequestPosition)
+        btRequestPosition.setOnClickListener { updatePositionButtonHandler() }
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
+                requestInProgress = false
+                loadingIcon.visibility = View.GONE
+                btRequestPosition.text = resources.getText(R.string.request_location)
                 setLocation(location)
             }
 
@@ -329,8 +338,18 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun requestPositionUpdate() {
-        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, null)
-        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, listener);
+        if (!requestInProgress) {
+            requestInProgress = true
+            loadingIcon.visibility = View.VISIBLE
+            btRequestPosition.text = resources.getText(R.string.stop_request)
+            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, null)
+            //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, listener);
+        } else {
+            locationManager.removeUpdates(listener)
+            requestInProgress = false
+            loadingIcon.visibility = View.GONE
+            btRequestPosition.text = resources.getText(R.string.request_location)
+        }
     }
 
     private fun updatePositionButtonHandler() {

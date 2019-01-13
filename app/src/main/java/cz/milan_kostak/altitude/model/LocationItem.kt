@@ -19,6 +19,10 @@ class LocationItem : BaseModel() {
     @Column
     var name: String = ""
 
+    fun hasName(): Boolean {
+        return !name.isEmpty()
+    }
+
     @Column
     var time: Long = 0
 

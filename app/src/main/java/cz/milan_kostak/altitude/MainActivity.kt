@@ -10,12 +10,13 @@ import android.location.LocationManager
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.view.WindowManager
+import android.widget.*
 import com.raizlabs.android.dbflow.config.FlowConfig
 import com.raizlabs.android.dbflow.config.FlowManager
 import cz.milan_kostak.altitude.model.LocationItem
@@ -109,29 +110,71 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_save -> {
-            // is set but not saved
-            if (currentLocationItem.set && !currentLocationItem.saved) {
-                if (currentLocationItem.save()) {
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Not saved!", Toast.LENGTH_SHORT).show()
-                }
-            }
-
+            save()
             true
         }
-
         R.id.action_show -> {
-            val intent = Intent(this, ListActivity::class.java)
-            startActivityForResult(intent, LIST_ACTIVITY_CODE)
+            showList()
             true
         }
-
         else -> {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun save() {
+        // is set but not saved
+        if (currentLocationItem.set && !currentLocationItem.saved) {
+
+            val input = EditText(this)
+            input.inputType = InputType.TYPE_CLASS_TEXT
+
+            val containerParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+            containerParams.topMargin = 8
+            containerParams.leftMargin = 58
+            containerParams.rightMargin = 58
+
+            val container = FrameLayout(this)
+            container.addView(input)
+            container.layoutParams = containerParams
+
+            val superContainer = FrameLayout(this)
+            superContainer.addView(container)
+
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Location name")
+            builder.setView(superContainer)
+            builder.setPositiveButton("Save") { _, _ ->
+                currentLocationItem.name = input.text.toString()
+
+                if (currentLocationItem.save()) {
+                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Error when saving!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            builder.setNegativeButton("Cancel", null)
+
+            val dialog = builder.show()
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+
+        } else {
+            if (!currentLocationItem.set) {
+                Toast.makeText(this, "Empty not saved!", Toast.LENGTH_SHORT).show()
+            } else if (currentLocationItem.saved) {
+                Toast.makeText(this, "Already saved.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showList() {
+        val intent = Intent(this, ListActivity::class.java)
+        startActivityForResult(intent, LIST_ACTIVITY_CODE)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -215,6 +258,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setLocationToWindow() {
+        var title = resources.getString(R.string.app_name)
+        if (currentLocationItem.hasName()) {
+            title += " - " + currentLocationItem.name
+        }
+        supportActionBar?.title = title
+
         tvTime.text = dateTimeFormat.format(Date(currentLocationItem.time))
 
         tvLatitude.text = coordinatesFormat.format(currentLocationItem.latitude)

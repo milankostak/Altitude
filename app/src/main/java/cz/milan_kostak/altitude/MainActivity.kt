@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (currentLocationItem.save()) {
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    currentLocationItem.saved = true
                 } else {
                     Toast.makeText(this, "Error when saving!", Toast.LENGTH_SHORT).show()
                 }
@@ -364,14 +365,14 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             PERMISSIONS_REQUEST_LOCATION -> {
-                // if request is cancelled, the result arrays are empty.
+                // if request is cancelled, the result arrays are empty
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     requestPositionUpdate()
                 }
                 return
             }
             else -> {
-                // Ignore all other requests.
+                // ignore all other requests
             }
         }
     }
@@ -379,7 +380,6 @@ class MainActivity : AppCompatActivity() {
     fun openMap(view: View) {
         if (currentLocationItem.set) {
             val uri = "geo:" + currentLocationItem.latitude + "," + currentLocationItem.longitude
-            //val uri = "http://maps.google.com/maps?q=${currentLocationItem.latitude},${currentLocationItem.longitude}"
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
             baseContext.startActivity(intent)
         }

@@ -50,7 +50,7 @@ class ListAdapter(
                 val item = data[itemPosition]
                 if (DbHelper.getItemById(item.id)?.delete()!!) {
                     data.remove(item)
-                    notifyDataSetChanged()
+                    notifyItemRemoved(itemPosition)
                 }
             }
             builder.setNegativeButton("Cancel", null)

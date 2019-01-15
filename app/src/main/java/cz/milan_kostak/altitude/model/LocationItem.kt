@@ -106,4 +106,8 @@ class LocationItem : BaseModel() {
         return satellites != -1
     }
 
+    override fun toString(): String {
+        return name
+    }
+
 }

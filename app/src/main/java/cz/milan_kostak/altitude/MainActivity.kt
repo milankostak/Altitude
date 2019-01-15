@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             builder.setTitle("Location name")
             builder.setView(superContainer)
             builder.setPositiveButton("Save") { _, _ ->
-                currentLocationItem.name = input.text.toString()
+                currentLocationItem.name = input.text.toString().trim()
 
                 if (currentLocationItem.save()) {
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()

@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvAccuracy: TextView
     private lateinit var tvAltitude: TextView
     private lateinit var tvAltitudeReal: TextView
+    private lateinit var loadingIconRealAlt: ProgressBar
     private lateinit var tvVerticalAccuracy: TextView
     private lateinit var tvSpeed: TextView
     private lateinit var tvSpeedAccuracy: TextView
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         tvAccuracy = findViewById(R.id.tvAccuracy)
         tvAltitude = findViewById(R.id.tvAltitude)
         tvAltitudeReal = findViewById(R.id.tvAltitudeReal)
+        loadingIconRealAlt = findViewById(R.id.loadingIconRealAlt)
         tvVerticalAccuracy = findViewById(R.id.tvVerticalAccuracy)
         tvSpeed = findViewById(R.id.tvSpeed)
         tvSpeedAccuracy = findViewById(R.id.tvSpeedAccuracy)

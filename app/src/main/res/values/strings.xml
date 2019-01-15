@@ -18,6 +18,8 @@
 
     <string name="save_this">Save</string>
     <string name="show_saved">Show all</string>
+    <string name="backup">Backup</string>
+    <string name="import_">Import</string>
 
     <string name="sort_by">Sort by</string>
     <string name="sort_time">Time</string>

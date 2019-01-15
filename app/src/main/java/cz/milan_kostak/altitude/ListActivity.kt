@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.RadioButton
 
 class ListActivity : AppCompatActivity() {
@@ -50,6 +52,25 @@ class ListActivity : AppCompatActivity() {
     private fun updateData(sortType: SortType) {
         val newData = DbHelper.getAllItems(sortType)
         viewAdapter.updateData(newData)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_list, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_backup -> {
+            // TODO
+            true
+        }
+        R.id.action_import -> {
+            // TODO
+            true
+        }
+        else -> {
+            super.onOptionsItemSelected(item)
+        }
     }
 
 }

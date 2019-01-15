@@ -13,6 +13,8 @@ import cz.milan_kostak.altitude.model.LocationItem
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
+
 
 class ListAdapter(
         private val data: MutableList<LocationItem>,
@@ -74,4 +76,37 @@ class ListAdapter(
     }
 
     override fun getItemCount() = data.size
+
+    fun updateData(newData: MutableList<LocationItem>) {
+        val oldIndices: MutableList<Int> = ArrayList()
+        val shifts: MutableList<Int> = ArrayList()
+
+        for (i in newData.indices) {
+            for (j in data.indices) {
+                if (data[j].id == newData[i].id) {
+                    oldIndices.add(j)
+                    break
+                }
+            }
+            shifts.add(0)
+        }
+
+        for (i in 0 until oldIndices.size) {
+            val newPosition = i
+            var oldPosition = oldIndices[i]
+            oldPosition += shifts[oldPosition]
+
+            if (oldPosition == newPosition) continue
+
+            notifyItemMoved(oldPosition, newPosition)
+
+            for (j in 0 until oldIndices[i]) {
+                shifts[j]++
+            }
+        }
+
+        data.clear()
+        data.addAll(newData)
+    }
+
 }

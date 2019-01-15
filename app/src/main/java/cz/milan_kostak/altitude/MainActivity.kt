@@ -26,6 +26,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.lang.ref.WeakReference
 import java.net.URL
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -224,9 +225,9 @@ class MainActivity : AppCompatActivity() {
         if (location.hasAltitude()) {
             currentLocationItem.altitude = location.altitude
         } else {
-            currentLocationItem.altitude = -10000.0
+            currentLocationItem.altitude = -10_000.0
         }
-        currentLocationItem.altitudeReal = -10000.0
+        currentLocationItem.altitudeReal = -10_000.0
 
         if (location.hasVerticalAccuracy()) {
             currentLocationItem.verticalAccuracy = location.verticalAccuracyMeters
@@ -267,7 +268,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setLocationToWindow()
-        getRealAltitude(location)
+        getRealAltitude(currentLocationItem)
     }
 
     private fun setLocationToWindow() {
@@ -390,11 +391,17 @@ class MainActivity : AppCompatActivity() {
     /**
      * Get and set real altitude converted from WGS 84 reference ellipsoid to WGS 84 geoid.
      */
-    private fun getRealAltitude(location: Location) {
+    private fun getRealAltitude(locationItem: LocationItem) {
+        loadingIconRealAlt.visibility = View.VISIBLE
+        tvAltitudeReal.visibility = View.INVISIBLE
+        RetrieveAltitudeTask(WeakReference(this), locationItem.altitude)
+                .execute(locationItem.latitude.toString(), locationItem.longitude.toString())
+    }
+
+    fun onRetrieveAltitudeTaskComplete(altitudeDiff: Float?, locationAltitude: Double) {
         try {
-            val altitude = RetrieveAltitudeTask().execute(location.latitude.toString(), location.longitude.toString()).get()
-            if (altitude != null) {
-                val altitudeReal = location.altitude - altitude
+            if (altitudeDiff != null) {
+                val altitudeReal = locationAltitude - altitudeDiff
                 currentLocationItem.altitudeReal = altitudeReal
                 tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
             } else {
@@ -403,12 +410,18 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            loadingIconRealAlt.visibility = View.GONE
+            tvAltitudeReal.visibility = View.VISIBLE
         }
     }
+
 }
 
-
-internal class RetrieveAltitudeTask : AsyncTask<String, Void, Float>() {
+internal class RetrieveAltitudeTask(
+        private val activityWR: WeakReference<MainActivity>,
+        private val locationAltitude: Double
+) : AsyncTask<String, Void, Float>() {
 
     override fun doInBackground(vararg params: String): Float? {
         var urlConnection: HttpsURLConnection? = null
@@ -435,7 +448,7 @@ internal class RetrieveAltitudeTask : AsyncTask<String, Void, Float>() {
         return null
     }
 
-    override fun onPostExecute(altitude: Float?) {
-
+    override fun onPostExecute(altitudeDiff: Float?) {
+        activityWR.get()?.onRetrieveAltitudeTaskComplete(altitudeDiff, locationAltitude)
     }
 }

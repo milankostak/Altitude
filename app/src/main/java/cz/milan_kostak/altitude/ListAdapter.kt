@@ -109,4 +109,10 @@ class ListAdapter(
         data.addAll(newData)
     }
 
+    fun updateAfterImport(newData: List<LocationItem>) {
+        data.clear()
+        data.addAll(newData)
+        notifyDataSetChanged()
+    }
+
 }

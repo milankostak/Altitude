@@ -32,4 +32,13 @@ object DbHelper {
     private fun getAll(): From<LocationItem> {
         return SQLite.select().from(LocationItem::class.java)
     }
+
+    @JvmStatic
+    fun import(locations: List<LocationItem>?) {
+        if (locations != null) {
+            for (location in locations) {
+                location.save()
+            }
+        }
+    }
 }

@@ -34,32 +34,6 @@ class ListAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_layout, parent, false)
-        val recyclerView = parent.findViewById<RecyclerView>(R.id.locations_list)
-        view.setOnClickListener {
-            val itemPosition = recyclerView.indexOfChild(view)
-            val item = data[itemPosition]
-
-            val intent = Intent()
-            intent.putExtra("locationId", item.id.toString())
-            listActivity.setResult(RESULT_OK, intent)
-            listActivity.finish()
-        }
-        view.setOnLongClickListener {
-            val builder = AlertDialog.Builder(parent.context)
-            builder.setTitle("Confirm delete")
-            builder.setPositiveButton("Delete") { _, _ ->
-                val itemPosition = recyclerView.indexOfChild(view)
-                val item = data[itemPosition]
-                if (DbHelper.getItemById(item.id)?.delete()!!) {
-                    data.remove(item)
-                    notifyItemRemoved(itemPosition)
-                }
-            }
-            builder.setNegativeButton("Cancel", null)
-            builder.show()
-
-            true // event is consumed and no further event handling is required
-        }
         return ViewHolder(view)
     }
 
@@ -73,6 +47,29 @@ class ListAdapter(
         }
         viewHolder.lbDate.text = dateTimeFormat.format(data[position].time)
         viewHolder.lbCoordinates.text = coordinatesFormat.format(data[position].latitude) + "  " + coordinatesFormat.format(data[position].longitude)
+
+        viewHolder.itemView.setOnClickListener {
+            val intent = Intent()
+            intent.putExtra("locationId", data[position].id.toString())
+            listActivity.setResult(RESULT_OK, intent)
+            listActivity.finish()
+        }
+        viewHolder.itemView.setOnLongClickListener {
+            val builder = AlertDialog.Builder(viewHolder.itemView.context)
+            builder.setTitle("Confirm delete")
+            println("$position ${data[position].name}")
+            builder.setPositiveButton("Delete") { _, _ ->
+                val item = data[position]
+                if (DbHelper.getItemById(item.id)?.delete()!!) {
+                    data.remove(item)
+                    notifyItemRemoved(position)
+                }
+            }
+            builder.setNegativeButton("Cancel", null)
+            builder.show()
+
+            true // event is consumed and no further event handling is required
+        }
     }
 
     override fun getItemCount() = data.size

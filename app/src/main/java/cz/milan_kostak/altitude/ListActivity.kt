@@ -1,6 +1,7 @@
 package cz.milan_kostak.altitude
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -33,15 +34,26 @@ class ListActivity : AppCompatActivity() {
     private val READ_REQUEST_CODE: Int = 42
     private val WRITE_REQUEST_CODE: Int = 43
 
-    enum class SortType {
-        TIME, NAME, ALTITUDE
+    private var currentSort = SortType.TIME
+
+    enum class SortType(val id: kotlin.Int) {
+        TIME(1), NAME(2), ALTITUDE(3);
+
+        companion object {
+            fun getById(newId: Int): SortType {
+                return SortType.values().single { it.id == newId }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
-        val queryList = DbHelper.getAllItems()
+        val sortId = getPreferences(Context.MODE_PRIVATE).getInt("currentSort", 1)
+        currentSort = SortType.getById(sortId)
+
+        val queryList = DbHelper.getAllItems(currentSort)
 
         viewManager = LinearLayoutManager(this)
         viewAdapter = ListAdapter(queryList, this)
@@ -59,12 +71,24 @@ class ListActivity : AppCompatActivity() {
         rbByName = findViewById(R.id.sort_name)
         rbByAltitude = findViewById(R.id.sort_altitude)
 
+        when (currentSort) {
+            SortType.TIME -> rbByTime.isChecked = true
+            SortType.NAME -> rbByName.isChecked = true
+            SortType.ALTITUDE -> rbByAltitude.isChecked = true
+        }
+
         rbByTime.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.TIME) }
         rbByName.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.NAME) }
         rbByAltitude.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.ALTITUDE) }
     }
 
     private fun updateData(sortType: SortType) {
+        currentSort = sortType
+        val pref = getPreferences(Context.MODE_PRIVATE)
+        with(pref.edit()) {
+            putInt("currentSort", currentSort.id)
+            apply()
+        }
         val newData = DbHelper.getAllItems(sortType)
         viewAdapter.updateData(newData)
     }
@@ -106,7 +130,10 @@ class ListActivity : AppCompatActivity() {
                 val locations = Gson().fromJson<List<LocationItem>>(json, listType)
                 DbHelper.import(locations)
                 Toast.makeText(this, "Imported ${locations.size} items", Toast.LENGTH_SHORT).show()
-                viewAdapter.updateAfterImport(locations)
+
+                // load imported locations from DB with correct sort
+                val newData = DbHelper.getAllItems(currentSort)
+                viewAdapter.updateAfterImport(newData)
             }
         } else if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             resultData?.data?.also { uri ->

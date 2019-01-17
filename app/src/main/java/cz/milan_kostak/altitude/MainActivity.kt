@@ -389,7 +389,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Get and set real altitude converted from WGS 84 reference ellipsoid to WGS 84 geoid.
+     * Get and set real altitude converted from WGS 84 reference ellipsoid to EGM 2008 geoid.
      */
     private fun getRealAltitude(locationItem: LocationItem) {
         loadingIconRealAlt.visibility = View.VISIBLE
@@ -405,7 +405,7 @@ class MainActivity : AppCompatActivity() {
                 currentLocationItem.altitudeReal = altitudeReal
                 tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
             } else {
-                currentLocationItem.altitudeReal = -10000.0
+                currentLocationItem.altitudeReal = -10_000.0
                 tvAltitudeReal.text = "-"
             }
         } catch (e: Exception) {

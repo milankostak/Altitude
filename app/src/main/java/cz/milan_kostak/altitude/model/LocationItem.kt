@@ -47,7 +47,7 @@ class LocationItem : BaseModel() {
         return altitude != -10_000.0
     }
 
-    // altitude in meters above the WGS 84 reference geoid
+    // altitude in meters above the EGM 2008 geoid
     @Column
     var altitudeReal: Double = -10_000.0
 

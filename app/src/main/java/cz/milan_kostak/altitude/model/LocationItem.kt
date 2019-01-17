@@ -9,7 +9,9 @@ import com.raizlabs.android.dbflow.structure.BaseModel
 
 class LocationItem : BaseModel() {
 
+    @Transient
     var saved = false
+    @Transient
     var set = false
 
     @Column

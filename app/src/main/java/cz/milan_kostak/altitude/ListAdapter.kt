@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import cz.milan_kostak.altitude.model.LocationItem
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -17,19 +18,49 @@ import kotlin.collections.ArrayList
 
 
 class ListAdapter(
-        private val data: MutableList<LocationItem>,
-        private val listActivity: ListActivity
+        val data: MutableList<LocationItem>,
+        val listActivity: ListActivity
 ) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
 
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.0°")
     private val altitudeFormat = DecimalFormat("0 m")
 
-    class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        val lbName: TextView = view.findViewById(R.id.lbName) as TextView
-        val lbAltitude: TextView = view.findViewById(R.id.lbAltitude) as TextView
-        val lbDate: TextView = view.findViewById(R.id.lbDate) as TextView
-        val lbCoordinates: TextView = view.findViewById(R.id.lbCoords) as TextView
+    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
+
+        val lbName: TextView = view.findViewById(R.id.lbName)
+        val lbAltitude: TextView = view.findViewById(R.id.lbAltitude)
+        val lbDate: TextView = view.findViewById(R.id.lbDate)
+        val lbCoordinates: TextView = view.findViewById(R.id.lbCoords)
+
+        init {
+            view.setOnClickListener(this)
+            view.setOnLongClickListener(this)
+        }
+
+        override fun onClick(v: View?) {
+            val intent = Intent()
+            intent.putExtra("locationId", data[layoutPosition].id.toString())
+            listActivity.setResult(RESULT_OK, intent)
+            listActivity.finish()
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            Toast.makeText(itemView.context, "$layoutPosition ${data[layoutPosition].name}", Toast.LENGTH_SHORT).show()
+            val builder = AlertDialog.Builder(itemView.context)
+            builder.setTitle("Confirm delete")
+            builder.setPositiveButton("Delete") { _, _ ->
+                val item = data[layoutPosition]
+                if (DbHelper.getItemById(item.id)?.delete()!!) {
+                    data.remove(item)
+                    notifyItemRemoved(layoutPosition)
+                }
+            }
+            builder.setNegativeButton("Cancel", null)
+            builder.show()
+
+            return true // event is consumed and no further event handling is required
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListAdapter.ViewHolder {
@@ -47,29 +78,6 @@ class ListAdapter(
         }
         viewHolder.lbDate.text = dateTimeFormat.format(data[position].time)
         viewHolder.lbCoordinates.text = coordinatesFormat.format(data[position].latitude) + "  " + coordinatesFormat.format(data[position].longitude)
-
-        viewHolder.itemView.setOnClickListener {
-            val intent = Intent()
-            intent.putExtra("locationId", data[position].id.toString())
-            listActivity.setResult(RESULT_OK, intent)
-            listActivity.finish()
-        }
-        viewHolder.itemView.setOnLongClickListener {
-            val builder = AlertDialog.Builder(viewHolder.itemView.context)
-            builder.setTitle("Confirm delete")
-            println("$position ${data[position].name}")
-            builder.setPositiveButton("Delete") { _, _ ->
-                val item = data[position]
-                if (DbHelper.getItemById(item.id)?.delete()!!) {
-                    data.remove(item)
-                    notifyItemRemoved(position)
-                }
-            }
-            builder.setNegativeButton("Cancel", null)
-            builder.show()
-
-            true // event is consumed and no further event handling is required
-        }
     }
 
     override fun getItemCount() = data.size

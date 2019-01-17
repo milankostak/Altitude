@@ -46,7 +46,6 @@ class ListAdapter(
         }
 
         override fun onLongClick(v: View?): Boolean {
-            Toast.makeText(itemView.context, "$layoutPosition ${data[layoutPosition].name}", Toast.LENGTH_SHORT).show()
             val builder = AlertDialog.Builder(itemView.context)
             builder.setTitle("Confirm delete")
             builder.setPositiveButton("Delete") { _, _ ->

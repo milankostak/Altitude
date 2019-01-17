@@ -12,11 +12,11 @@ import android.view.MenuItem
 import android.widget.RadioButton
 import android.widget.Toast
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import cz.milan_kostak.altitude.model.LocationItem
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import com.google.gson.reflect.TypeToken
 import java.util.*
 
 
@@ -100,6 +100,7 @@ class ListActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             resultData?.data?.also { uri ->
+                // load data from JSON
                 val json = readTextFromUri(uri)
                 val listType = object : TypeToken<List<LocationItem>>() {}.type
                 val locations = Gson().fromJson<List<LocationItem>>(json, listType)

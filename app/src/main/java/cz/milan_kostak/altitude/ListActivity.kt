@@ -34,6 +34,7 @@ class ListActivity : AppCompatActivity() {
     private val READ_REQUEST_CODE: Int = 42
     private val WRITE_REQUEST_CODE: Int = 43
 
+    private val SORT_PREFERENCE_KEY = "currentSort"
     private var currentSort = SortType.TIME
 
     enum class SortType(val id: kotlin.Int) {
@@ -50,7 +51,7 @@ class ListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
-        val sortId = getPreferences(Context.MODE_PRIVATE).getInt("currentSort", 1)
+        val sortId = getPreferences(Context.MODE_PRIVATE).getInt(SORT_PREFERENCE_KEY, SortType.TIME.id)
         currentSort = SortType.getById(sortId)
 
         val queryList = DbHelper.getAllItems(currentSort)
@@ -86,7 +87,7 @@ class ListActivity : AppCompatActivity() {
         currentSort = sortType
         val pref = getPreferences(Context.MODE_PRIVATE)
         with(pref.edit()) {
-            putInt("currentSort", currentSort.id)
+            putInt(SORT_PREFERENCE_KEY, currentSort.id)
             apply()
         }
         val newData = DbHelper.getAllItems(sortType)

@@ -195,12 +195,19 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == LIST_ACTIVITY_CODE) {
             if (resultCode == RESULT_OK) {
-                val locationId = data!!.getStringExtra("locationId").toInt()
-                val locationItem = DbHelper.getItemById(locationId)
-                currentLocationItem = locationItem!!
-                currentLocationItem.saved = true
-                currentLocationItem.set = true
-                setLocationToWindow()
+                if (data != null) {
+                    val locationId = data.getStringExtra("locationId").toInt()
+                    val locationItem = DbHelper.getItemById(locationId)
+                    if (locationItem != null) {
+                        currentLocationItem = locationItem
+                        currentLocationItem.saved = true
+                        currentLocationItem.set = true
+                        setLocationToWindow()
+                        if (!currentLocationItem.hasAltitudeReal()) {
+                            getRealAltitude(currentLocationItem)
+                        }
+                    }
+                }
             }
         }
     }
@@ -404,6 +411,10 @@ class MainActivity : AppCompatActivity() {
                 val altitudeReal = locationAltitude - altitudeDiff
                 currentLocationItem.altitudeReal = altitudeReal
                 tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
+                if (currentLocationItem.saved) {
+                    // if already saved then update
+                    currentLocationItem.update()
+                }
             } else {
                 currentLocationItem.altitudeReal = -10_000.0
                 tvAltitudeReal.text = "-"

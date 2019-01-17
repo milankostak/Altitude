@@ -14,6 +14,7 @@ class LocationItem : BaseModel() {
     @Transient
     var set = false
 
+    @Transient
     @Column
     @PrimaryKey(autoincrement = true)
     var id: Int = 0

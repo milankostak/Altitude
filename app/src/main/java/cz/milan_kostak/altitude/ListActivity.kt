@@ -113,6 +113,16 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
+    private fun createFile() {
+        val fileName = "altitude_backup_" + Date().time + ".json"
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/octet-stream"
+            putExtra(Intent.EXTRA_TITLE, fileName)
+        }
+        startActivityForResult(intent, WRITE_REQUEST_CODE)
+    }
+
     private fun import() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             // Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones)
@@ -159,20 +169,6 @@ class ListActivity : AppCompatActivity() {
             }
         }
         return stringBuilder.toString()
-    }
-
-    private fun createFile() {
-        val mimeType = "application/octet-stream"
-        val fileName = "altitude_backup_" + Date().time + ".json"
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-
-            // Create a file with the requested MIME type.
-            type = mimeType
-            putExtra(Intent.EXTRA_TITLE, fileName)
-        }
-
-        startActivityForResult(intent, WRITE_REQUEST_CODE)
     }
 
 }

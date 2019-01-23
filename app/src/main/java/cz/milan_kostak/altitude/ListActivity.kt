@@ -108,6 +108,10 @@ class ListActivity : AppCompatActivity() {
             import()
             true
         }
+        16908332 -> { // R.id.home nebere - nechápu, nechci řešit
+            finish()
+            true
+        }
         else -> {
             super.onOptionsItemSelected(item)
         }

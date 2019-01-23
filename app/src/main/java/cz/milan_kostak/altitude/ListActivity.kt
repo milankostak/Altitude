@@ -61,9 +61,7 @@ class ListActivity : AppCompatActivity() {
 
         recyclerView = findViewById<RecyclerView>(R.id.locations_list).apply {
             setHasFixedSize(true)
-
             layoutManager = viewManager
-
             adapter = viewAdapter
         }
 
@@ -129,7 +127,8 @@ class ListActivity : AppCompatActivity() {
 
     private fun import() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            // Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones)
+            // Filter to only show results that can be "opened",
+            // such as a file (as opposed to a list of contacts or timezones)
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/octet-stream"
         }

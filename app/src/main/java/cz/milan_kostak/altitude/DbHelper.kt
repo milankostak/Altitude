@@ -20,24 +20,29 @@ object DbHelper {
 
     /**
      * Get all locations sorted by time ascending
+     * @param[ascending] true if ascending, false if descending sorting
      * @return mutable list of location items
      */
     @JvmStatic
-    fun getAllItems(): MutableList<LocationItem> {
-        return getAll().orderBy(LocationItem_Table.time, true).queryList()
+    fun getAllItems(ascending: Boolean): MutableList<LocationItem> {
+        return getAll().orderBy(LocationItem_Table.time, ascending).queryList()
     }
 
     /**
      * Get all locations sorted by given parameter
      * @param[sortType] tells how should locations be ordered
+     * @param[ascending] true if ascending, false if descending sorting
      * @return mutable list of location items
      */
     @JvmStatic
-    fun getAllItems(sortType: ListActivity.SortType): MutableList<LocationItem> {
+    fun getAllItems(sortType: ListActivity.SortType, ascending: Boolean): MutableList<LocationItem> {
         return when (sortType) {
-            ListActivity.SortType.TIME -> DbHelper.getAllItems()
-            ListActivity.SortType.NAME -> DbHelper.getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).ascending()).queryList()
-            ListActivity.SortType.ALTITUDE -> DbHelper.getAll().orderBy(LocationItem_Table.altitudeReal, true).queryList()
+            ListActivity.SortType.TIME -> DbHelper.getAllItems(ascending)
+            ListActivity.SortType.NAME -> {
+                if (ascending) DbHelper.getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).ascending()).queryList()
+                else DbHelper.getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).descending()).queryList()
+            }
+            ListActivity.SortType.ALTITUDE -> DbHelper.getAll().orderBy(LocationItem_Table.altitudeReal, ascending).queryList()
         }
     }
 

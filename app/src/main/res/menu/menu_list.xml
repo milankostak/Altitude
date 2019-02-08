@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <item
         android:id="@+id/action_backup"
@@ -12,4 +13,10 @@
         android:title="@string/import_"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_ascending"
+        android:title="@string/ascending"
+        app:actionLayout="@layout/menu_checkbox"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 </menu>

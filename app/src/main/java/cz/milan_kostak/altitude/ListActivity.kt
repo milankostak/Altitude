@@ -10,6 +10,8 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.CheckBox
 import android.widget.RadioButton
 import android.widget.Toast
 import com.google.gson.Gson
@@ -35,7 +37,9 @@ class ListActivity : AppCompatActivity() {
     private val WRITE_REQUEST_CODE: Int = 43
 
     private val SORT_PREFERENCE_KEY = "currentSort"
+    private val SORT_ASCENDING_KEY = "ascendingSort"
     private var currentSort = SortType.TIME
+    private var ascending = true
 
     enum class SortType(val id: kotlin.Int) {
         TIME(1), NAME(2), ALTITUDE(3);
@@ -54,7 +58,10 @@ class ListActivity : AppCompatActivity() {
         val sortId = getPreferences(Context.MODE_PRIVATE).getInt(SORT_PREFERENCE_KEY, SortType.TIME.id)
         currentSort = SortType.getById(sortId)
 
-        val queryList = DbHelper.getAllItems(currentSort)
+        val ascendingVal = getPreferences(Context.MODE_PRIVATE).getInt(SORT_ASCENDING_KEY, 1)
+        ascending = (ascendingVal == 1)
+
+        val queryList = DbHelper.getAllItems(currentSort, ascending)
 
         viewManager = LinearLayoutManager(this)
         viewAdapter = ListAdapter(queryList, this)
@@ -86,15 +93,23 @@ class ListActivity : AppCompatActivity() {
         val pref = getPreferences(Context.MODE_PRIVATE)
         with(pref.edit()) {
             putInt(SORT_PREFERENCE_KEY, currentSort.id)
+            putInt(SORT_ASCENDING_KEY, if (ascending) 1 else 0)
             apply()
         }
-        val newData = DbHelper.getAllItems(sortType)
+        val newData = DbHelper.getAllItems(sortType, ascending)
         viewAdapter.updateData(newData)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_list, menu)
+//        menu.getItem(2).isChecked = false TODO
         return true
+    }
+
+    fun changeOrder(view: View) {
+        val cbAscending: CheckBox = findViewById(R.id.action_item_checkbox)
+        ascending = cbAscending.isChecked
+        updateData(currentSort)
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
@@ -146,12 +161,12 @@ class ListActivity : AppCompatActivity() {
                 Toast.makeText(this, "Imported ${locations.size} items", Toast.LENGTH_SHORT).show()
 
                 // load imported locations from DB with correct sort
-                val newData = DbHelper.getAllItems(currentSort)
+                val newData = DbHelper.getAllItems(currentSort, ascending)
                 viewAdapter.updateAfterImport(newData)
             }
         } else if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             resultData?.data?.also { uri ->
-                val json = Gson().toJson(DbHelper.getAllItems())
+                val json = Gson().toJson(DbHelper.getAllItems(true))
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
                     outputStream.write(json.toByteArray())
                 }

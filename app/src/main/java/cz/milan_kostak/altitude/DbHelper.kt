@@ -37,12 +37,12 @@ object DbHelper {
     @JvmStatic
     fun getAllItems(sortType: ListActivity.SortType, ascending: Boolean): MutableList<LocationItem> {
         return when (sortType) {
-            ListActivity.SortType.TIME -> DbHelper.getAllItems(ascending)
+            ListActivity.SortType.TIME -> getAllItems(ascending)
             ListActivity.SortType.NAME -> {
-                if (ascending) DbHelper.getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).ascending()).queryList()
-                else DbHelper.getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).descending()).queryList()
+                if (ascending) getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).ascending()).queryList()
+                else getAll().orderBy(OrderBy.fromProperty(LocationItem_Table.name).collate(Collate.NOCASE).descending()).queryList()
             }
-            ListActivity.SortType.ALTITUDE -> DbHelper.getAll().orderBy(LocationItem_Table.altitudeReal, ascending).queryList()
+            ListActivity.SortType.ALTITUDE -> getAll().orderBy(LocationItem_Table.altitudeReal, ascending).queryList()
         }
     }
 

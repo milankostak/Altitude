@@ -3,13 +3,12 @@ package cz.milan_kostak.altitude
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.RecyclerView
 import cz.milan_kostak.altitude.model.LocationItem
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat

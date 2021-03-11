@@ -10,15 +10,15 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
 import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.raizlabs.android.dbflow.config.FlowConfig
 import com.raizlabs.android.dbflow.config.FlowManager
 import cz.milan_kostak.altitude.model.LocationItem
@@ -195,9 +195,8 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == LIST_ACTIVITY_CODE) {
             if (resultCode == RESULT_OK) {
-                if (data != null) {
-                    val locationId = data.getStringExtra("locationId").toInt()
-                    val locationItem = DbHelper.getItemById(locationId)
+                data?.getStringExtra("locationId")?.toInt()?.let {
+                    val locationItem = DbHelper.getItemById(it)
                     if (locationItem != null) {
                         currentLocationItem = locationItem
                         currentLocationItem.saved = true

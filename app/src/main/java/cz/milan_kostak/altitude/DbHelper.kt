@@ -13,7 +13,6 @@ object DbHelper {
      * Get one item by location ID
      * @return LocationItem?
      */
-    @JvmStatic
     fun getItemById(locationId: Int): LocationItem? {
         return SQLite.select().from(LocationItem::class.java).where(LocationItem_Table.id.eq(locationId)).querySingle()
     }
@@ -23,7 +22,6 @@ object DbHelper {
      * @param[ascending] true if ascending, false if descending sorting
      * @return mutable list of location items
      */
-    @JvmStatic
     fun getAllItems(ascending: Boolean): MutableList<LocationItem> {
         return getAll().orderBy(LocationItem_Table.time, ascending).queryList()
     }
@@ -34,7 +32,6 @@ object DbHelper {
      * @param[ascending] true if ascending, false if descending sorting
      * @return mutable list of location items
      */
-    @JvmStatic
     fun getAllItems(sortType: ListActivity.SortType, ascending: Boolean): MutableList<LocationItem> {
         return when (sortType) {
             ListActivity.SortType.TIME -> getAllItems(ascending)
@@ -46,7 +43,6 @@ object DbHelper {
         }
     }
 
-    @JvmStatic
     private fun getAll(): From<LocationItem> {
         return SQLite.select().from(LocationItem::class.java)
     }
@@ -55,12 +51,8 @@ object DbHelper {
      * Save all locations
      * @param[locations] list of locations to be saved
      */
-    @JvmStatic
     fun import(locations: List<LocationItem>?) {
-        if (locations != null) {
-            for (location in locations) {
-                location.save()
-            }
-        }
+        locations?.forEach { it.save() }
     }
+
 }

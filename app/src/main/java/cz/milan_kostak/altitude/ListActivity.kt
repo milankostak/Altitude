@@ -42,12 +42,12 @@ class ListActivity : AppCompatActivity() {
     private var currentSort = SortType.TIME
     private var ascending = true
 
-    enum class SortType(val id: kotlin.Int) {
+    enum class SortType(val id: Int) {
         TIME(1), NAME(2), ALTITUDE(3);
 
         companion object {
             fun getById(newId: Int): SortType {
-                return SortType.values().single { it.id == newId }
+                return values().single { it.id == newId }
             }
         }
     }
@@ -132,7 +132,7 @@ class ListActivity : AppCompatActivity() {
     }
 
     private fun createFile() {
-        val fileName = "altitude_backup_" + Date().time + ".json"
+        val fileName = "altitude_backup_${Date().time}.json"
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/octet-stream"
@@ -186,6 +186,7 @@ class ListActivity : AppCompatActivity() {
                     stringBuilder.append(line)
                     line = reader.readLine()
                 }
+//                reader.lines()
             }
         }
         return stringBuilder.toString()

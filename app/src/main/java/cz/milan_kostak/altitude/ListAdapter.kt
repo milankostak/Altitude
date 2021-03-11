@@ -25,7 +25,7 @@ class ListAdapter(
     private val coordinatesFormat = DecimalFormat("0.0°")
     private val altitudeFormat = DecimalFormat("0 m")
 
-    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
 
         val lbName: TextView = view.findViewById(R.id.lbName)
         val lbAltitude: TextView = view.findViewById(R.id.lbAltitude)
@@ -49,7 +49,7 @@ class ListAdapter(
             builder.setTitle("Confirm delete")
             builder.setPositiveButton("Delete") { _, _ ->
                 val item = data[layoutPosition]
-                if (DbHelper.getItemById(item.id)?.delete()!!) {
+                if (DbHelper.getItemById(item.id)?.delete() == true) {
                     data.remove(item)
                     notifyItemRemoved(layoutPosition)
                 }

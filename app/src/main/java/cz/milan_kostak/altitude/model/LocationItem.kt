@@ -23,7 +23,7 @@ class LocationItem : BaseModel() {
     var name: String = ""
 
     fun hasName(): Boolean {
-        return !name.isEmpty()
+        return name.isNotEmpty()
     }
 
     @Column
@@ -99,7 +99,7 @@ class LocationItem : BaseModel() {
     var provider: String = ""
 
     fun hasProvider(): Boolean {
-        return !provider.isEmpty()
+        return provider.isNotEmpty()
     }
 
     @Column

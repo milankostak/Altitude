@@ -447,8 +447,7 @@ internal class RetrieveAltitudeTask(
 
             val matcher = r.matcher(result)
             if (matcher.find()) {
-                val altitudeString = matcher.group(1)
-                return java.lang.Float.parseFloat(altitudeString)
+                return matcher.group(1)?.toFloat()
             }
         } catch (e: IOException) {
             e.printStackTrace()

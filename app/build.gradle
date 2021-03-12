@@ -27,7 +27,7 @@ android {
     }
 }
 
-def dbflow_version = "4.0.3"
+def dbflow_version = "4.2.4"
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

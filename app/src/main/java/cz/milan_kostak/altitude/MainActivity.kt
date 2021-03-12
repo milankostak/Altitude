@@ -390,6 +390,7 @@ class MainActivity : AppCompatActivity() {
         if (currentLocationItem.set) {
             val uri = "geo:" + currentLocationItem.latitude + "," + currentLocationItem.longitude
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             baseContext.startActivity(intent)
         }
     }

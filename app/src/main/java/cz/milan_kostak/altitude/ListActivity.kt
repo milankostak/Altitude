@@ -1,18 +1,19 @@
 package cz.milan_kostak.altitude
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.appcompat.widget.AppCompatCheckBox
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.CheckBox
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -32,6 +33,9 @@ class ListActivity : AppCompatActivity() {
     private lateinit var viewAdapter: ListAdapter
 
     private lateinit var locationItemDao: LocationItemDao
+
+    private lateinit var backupLauncher: ActivityResultLauncher<Intent>
+    private lateinit var importLauncher: ActivityResultLauncher<Intent>
 
     private var currentSort = SortType.TIME
     private var ascending = true
@@ -83,6 +87,9 @@ class ListActivity : AppCompatActivity() {
                 updateData()
             }
         }
+
+        backupLauncher = getBackupLauncher()
+        importLauncher = getImportLauncher()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -114,15 +121,11 @@ class ListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_backup -> {
-            createFile()
+            backup()
             true
         }
         R.id.action_import -> {
             import()
-            true
-        }
-        16908332 -> { // R.id.home nebere - nechápu, nechci řešit
-            finish()
             true
         }
         else -> {
@@ -130,14 +133,29 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    private fun createFile() {
+    private fun backup() {
         val fileName = "altitude_backup_${Date().time}.json"
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/json"
             putExtra(Intent.EXTRA_TITLE, fileName)
         }
-        startActivityForResult(intent, WRITE_REQUEST_CODE)
+        backupLauncher.launch(intent)
+    }
+
+    private fun getBackupLauncher(): ActivityResultLauncher<Intent> {
+        return registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            it?.data?.data?.let { uri ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    val json = Gson().toJson(locationItemDao.getAll())
+                    runOnUiThread {
+                        contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            outputStream.write(json.toByteArray())
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun import() {
@@ -147,13 +165,12 @@ class ListActivity : AppCompatActivity() {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/json"
         }
-        startActivityForResult(intent, READ_REQUEST_CODE)
+        importLauncher.launch(intent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            resultData?.data?.let { uri ->
+    private fun getImportLauncher(): ActivityResultLauncher<Intent> {
+        return registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            it?.data?.data?.let { uri ->
                 // load data from JSON
                 val json = readTextFromUri(uri)
                 val listType = object : TypeToken<List<LocationItem>>() {}.type
@@ -167,18 +184,6 @@ class ListActivity : AppCompatActivity() {
                     runOnUiThread {
                         viewAdapter.setItems(allItems)
                         updateData()
-                    }
-                }
-            }
-        } else if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            resultData?.data?.let { uri ->
-
-                CoroutineScope(Dispatchers.IO).launch {
-                    val json = Gson().toJson(locationItemDao.getAll())
-                    runOnUiThread {
-                        contentResolver.openOutputStream(uri)?.use { outputStream ->
-                            outputStream.write(json.toByteArray())
-                        }
                     }
                 }
             }

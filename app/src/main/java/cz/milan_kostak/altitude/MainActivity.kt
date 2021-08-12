@@ -16,6 +16,8 @@ import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -27,10 +29,7 @@ import cz.milan_kostak.altitude.model.LocationItemDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.BufferedInputStream
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
+import java.io.*
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.text.DecimalFormat
@@ -65,6 +64,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var locationItemDao: LocationItemDao
 
+    private lateinit var showListLauncher: ActivityResultLauncher<Intent>
+
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy HH:mm:ss", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.00000000°")
     private val altitudeFormat = DecimalFormat("0.0 m")
@@ -76,8 +77,6 @@ class MainActivity : AppCompatActivity() {
     private var currentLocationItem = LocationItem()
     private var requestInProgress: Boolean = false
 
-    private val PERMISSIONS_REQUEST_LOCATION = 10
-    private val LIST_ACTIVITY_CODE = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,6 +115,8 @@ class MainActivity : AppCompatActivity() {
             btRequestPosition.text = resources.getText(R.string.request_location)
             setLocation(location)
         }
+
+        showListLauncher = getShowListLauncher()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -129,7 +130,8 @@ class MainActivity : AppCompatActivity() {
             true
         }
         R.id.action_show -> {
-            showList()
+            val intent = Intent(this, ListActivity::class.java)
+            showListLauncher.launch(intent)
             true
         }
         else -> {
@@ -193,15 +195,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showList() {
-        val intent = Intent(this, ListActivity::class.java)
-        startActivityForResult(intent, LIST_ACTIVITY_CODE)
-    }
-
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == LIST_ACTIVITY_CODE && resultCode == RESULT_OK) {
-            data?.getStringExtra("locationId")?.toInt()?.let {
+    private fun getShowListLauncher(): ActivityResultLauncher<Intent> {
+        return registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            it?.data?.getStringExtra("locationId")?.toInt()?.let {
                 CoroutineScope(Dispatchers.IO).launch {
                     val locationItem = locationItemDao.getItemById(it)
                     runOnUiThread {
@@ -372,7 +368,7 @@ class MainActivity : AppCompatActivity() {
     private fun updatePositionButtonHandler() {
         // first check for permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET), PERMISSIONS_REQUEST_LOCATION)
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET), Constants.PERMISSIONS_REQUEST_LOCATION)
         } else {
             requestPositionUpdate()
         }
@@ -381,7 +377,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            PERMISSIONS_REQUEST_LOCATION -> {
+            Constants.PERMISSIONS_REQUEST_LOCATION -> {
                 // if request is cancelled, the result arrays are empty
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     requestPositionUpdate()

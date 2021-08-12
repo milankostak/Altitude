@@ -27,8 +27,6 @@ android {
     }
 }
 
-def dbflow_version = "4.2.4"
-
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.6.0'
@@ -39,12 +37,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'com.google.code.gson:gson:2.8.6'
 
-    kapt "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
-    implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
-    implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
-}
-repositories {
-    mavenCentral()
-    jcenter()
-    maven { url "https://jitpack.io" }
+    def room_version = "2.3.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation "androidx.room:room-ktx:$room_version"
 }

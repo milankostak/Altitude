@@ -19,9 +19,14 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.raizlabs.android.dbflow.config.FlowConfig
-import com.raizlabs.android.dbflow.config.FlowManager
+import androidx.room.Room
+import cz.milan_kostak.altitude.model.AppDatabase
+import cz.milan_kostak.altitude.model.Constants
 import cz.milan_kostak.altitude.model.LocationItem
+import cz.milan_kostak.altitude.model.LocationItemDao
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.IOException
@@ -58,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationManager: LocationManager
     private lateinit var listener: LocationListener
 
+    private lateinit var locationItemDao: LocationItemDao
+
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy HH:mm:ss", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.00000000°")
     private val altitudeFormat = DecimalFormat("0.0 m")
@@ -76,9 +83,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // This instantiates DBFlow
-        FlowManager.init(FlowConfig.Builder(this).build())
-        //FlowManager.getDatabase(DatabaseModel::class.java).reset(this)
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            Constants.NAME
+        ).build()
+        locationItemDao = db.locationItemDao()
 
         loadingIcon = findViewById(R.id.loadingIcon)
         tvTime = findViewById(R.id.tvTime)
@@ -165,11 +175,16 @@ class MainActivity : AppCompatActivity() {
             builder.setPositiveButton("Save") { _, _ ->
                 currentLocationItem.name = input.text.toString().trim()
 
-                if (currentLocationItem.save()) {
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-                    currentLocationItem.saved = true
-                } else {
-                    Toast.makeText(this, "Error when saving!", Toast.LENGTH_SHORT).show()
+                CoroutineScope(Dispatchers.IO).launch {
+                    val result = locationItemDao.insert(currentLocationItem)
+                    runOnUiThread {
+                        if (result > 0) {
+                            Toast.makeText(this@MainActivity, "Saved", Toast.LENGTH_SHORT).show()
+                            currentLocationItem.saved = true
+                        } else {
+                            Toast.makeText(this@MainActivity, "Error when saving!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
             builder.setNegativeButton("Cancel", null)
@@ -193,15 +208,15 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == LIST_ACTIVITY_CODE) {
-            if (resultCode == RESULT_OK) {
-                data?.getStringExtra("locationId")?.toInt()?.let {
-                    val locationItem = DbHelper.getItemById(it)
-                    if (locationItem != null) {
+        if (requestCode == LIST_ACTIVITY_CODE && resultCode == RESULT_OK) {
+            data?.getStringExtra("locationId")?.toInt()?.let {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val locationItem = locationItemDao.getItemById(it)
+                    runOnUiThread {
                         currentLocationItem = locationItem
                         currentLocationItem.saved = true
                         currentLocationItem.set = true
-                        setLocationToWindow()
+                        setLocationToUI()
                         if (!currentLocationItem.hasAltitudeReal()) {
                             getRealAltitude(currentLocationItem)
                         }
@@ -273,11 +288,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        setLocationToWindow()
+        setLocationToUI()
         getRealAltitude(currentLocationItem)
     }
 
-    private fun setLocationToWindow() {
+    private fun setLocationToUI() {
         var title = resources.getString(R.string.app_name)
         if (currentLocationItem.hasName()) {
             title += " - " + currentLocationItem.name
@@ -372,6 +387,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSIONS_REQUEST_LOCATION -> {
                 // if request is cancelled, the result arrays are empty
@@ -413,7 +429,7 @@ class MainActivity : AppCompatActivity() {
                 tvAltitudeReal.text = altitudeFormat.format(altitudeReal)
                 if (currentLocationItem.saved) {
                     // if already saved then update
-                    currentLocationItem.update()
+                    locationItemDao.update(currentLocationItem)
                 }
             } else {
                 currentLocationItem.altitudeReal = -10_000.0

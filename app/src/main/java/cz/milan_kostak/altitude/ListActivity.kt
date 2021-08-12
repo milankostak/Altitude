@@ -15,9 +15,13 @@ import android.widget.RadioButton
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import cz.milan_kostak.altitude.model.LocationItem
+import cz.milan_kostak.altitude.model.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -34,27 +38,21 @@ class ListActivity : AppCompatActivity() {
     private lateinit var rbByName: RadioButton
     private lateinit var rbByAltitude: RadioButton
 
-    private val READ_REQUEST_CODE: Int = 42
-    private val WRITE_REQUEST_CODE: Int = 43
+    private lateinit var locationItemDao: LocationItemDao
 
-    private val SORT_PREFERENCE_KEY = "currentSort"
-    private val SORT_ASCENDING_KEY = "ascendingSort"
     private var currentSort = SortType.TIME
     private var ascending = true
-
-    enum class SortType(val id: Int) {
-        TIME(1), NAME(2), ALTITUDE(3);
-
-        companion object {
-            fun getById(newId: Int): SortType {
-                return values().single { it.id == newId }
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            Constants.NAME
+        ).build()
+        locationItemDao = db.locationItemDao()
 
         val sortId = getPreferences(Context.MODE_PRIVATE).getInt(SORT_PREFERENCE_KEY, SortType.TIME.id)
         currentSort = SortType.getById(sortId)
@@ -62,10 +60,8 @@ class ListActivity : AppCompatActivity() {
         val ascendingVal = getPreferences(Context.MODE_PRIVATE).getInt(SORT_ASCENDING_KEY, 1)
         ascending = (ascendingVal == 1)
 
-        val queryList = DbHelper.getAllItems(currentSort, ascending)
-
         viewManager = LinearLayoutManager(this)
-        viewAdapter = ListAdapter(queryList, this)
+        viewAdapter = ListAdapter(this, locationItemDao)
 
         recyclerView = findViewById<RecyclerView>(R.id.locations_list).apply {
             setHasFixedSize(true)
@@ -87,6 +83,14 @@ class ListActivity : AppCompatActivity() {
         rbByTime.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.TIME) }
         rbByName.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.NAME) }
         rbByAltitude.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.ALTITUDE) }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val newData = locationItemDao.getAll()
+            runOnUiThread {
+                viewAdapter.setData(newData)
+                updateData(currentSort)
+            }
+        }
     }
 
     private fun updateData(sortType: SortType) {
@@ -97,8 +101,7 @@ class ListActivity : AppCompatActivity() {
             putInt(SORT_ASCENDING_KEY, if (ascending) 1 else 0)
             apply()
         }
-        val newData = DbHelper.getAllItems(sortType, ascending)
-        viewAdapter.updateData(newData)
+        viewAdapter.sortItems(currentSort, ascending)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -108,7 +111,7 @@ class ListActivity : AppCompatActivity() {
     }
 
     fun changeOrder(view: View) {
-        val cbAscending: CheckBox = findViewById(R.id.action_item_checkbox)
+        val cbAscending: CheckBox = view.findViewById(R.id.action_item_checkbox)
         ascending = cbAscending.isChecked
         updateData(currentSort)
     }
@@ -154,23 +157,34 @@ class ListActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            resultData?.data?.also { uri ->
+            resultData?.data?.let { uri ->
                 // load data from JSON
                 val json = readTextFromUri(uri)
                 val listType = object : TypeToken<List<LocationItem>>() {}.type
                 val locations = Gson().fromJson<List<LocationItem>>(json, listType)
-                DbHelper.import(locations)
                 Toast.makeText(this, "Imported ${locations.size} items", Toast.LENGTH_SHORT).show()
 
-                // load imported locations from DB with correct sort
-                val newData = DbHelper.getAllItems(currentSort, ascending)
-                viewAdapter.updateAfterImport(newData)
+                CoroutineScope(Dispatchers.IO).launch {
+                    locationItemDao.insert(locations)
+                    // load imported locations from DB with correct sort
+                    val newData = locationItemDao.getAll()
+
+                    runOnUiThread {
+                        viewAdapter.setData(newData)
+                        updateData(currentSort)
+                    }
+                }
             }
         } else if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            resultData?.data?.also { uri ->
-                val json = Gson().toJson(DbHelper.getAllItems(true))
-                contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    outputStream.write(json.toByteArray())
+            resultData?.data?.let { uri ->
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val json = Gson().toJson(locationItemDao.getAll())
+                    runOnUiThread {
+                        contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            outputStream.write(json.toByteArray())
+                        }
+                    }
                 }
             }
         }
@@ -190,6 +204,14 @@ class ListActivity : AppCompatActivity() {
             }
         }
         return stringBuilder.toString()
+    }
+
+    companion object {
+        private const val READ_REQUEST_CODE: Int = 42
+        private const val WRITE_REQUEST_CODE: Int = 43
+
+        private const val SORT_PREFERENCE_KEY = "currentSort"
+        private const val SORT_ASCENDING_KEY = "ascendingSort"
     }
 
 }

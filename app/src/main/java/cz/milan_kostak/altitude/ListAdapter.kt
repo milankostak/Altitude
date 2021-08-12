@@ -10,6 +10,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import cz.milan_kostak.altitude.model.LocationItem
+import cz.milan_kostak.altitude.model.LocationItemDao
+import cz.milan_kostak.altitude.model.SortType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,9 +22,11 @@ import kotlin.collections.ArrayList
 
 
 class ListAdapter(
-        val data: MutableList<LocationItem>,
-        val listActivity: ListActivity
+    private val listActivity: ListActivity,
+    private val locationItemDao: LocationItemDao,
 ) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+
+    private val data: MutableList<LocationItem> = mutableListOf()
 
     private val dateTimeFormat = SimpleDateFormat("dd. MM. yyyy", Locale.getDefault())
     private val coordinatesFormat = DecimalFormat("0.0°")
@@ -37,21 +44,25 @@ class ListAdapter(
             view.setOnLongClickListener(this)
         }
 
-        override fun onClick(v: View?) {
+        override fun onClick(view: View) {
             val intent = Intent()
             intent.putExtra("locationId", data[layoutPosition].id.toString())
             listActivity.setResult(RESULT_OK, intent)
             listActivity.finish()
         }
 
-        override fun onLongClick(v: View?): Boolean {
+        override fun onLongClick(view: View): Boolean {
             val builder = AlertDialog.Builder(itemView.context)
             builder.setTitle("Confirm delete")
             builder.setPositiveButton("Delete") { _, _ ->
                 val item = data[layoutPosition]
-                if (DbHelper.getItemById(item.id)?.delete() == true) {
-                    data.remove(item)
-                    notifyItemRemoved(layoutPosition)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val itemFromDB = locationItemDao.getItemById(item.id)
+                    val result = locationItemDao.delete(itemFromDB)
+                    if (result == 1) {
+                        data.remove(item)
+                        notifyItemRemoved(layoutPosition)
+                    }
                 }
             }
             builder.setNegativeButton("Cancel", null)
@@ -75,12 +86,30 @@ class ListAdapter(
             viewHolder.lbAltitude.text = "~" + altitudeFormat.format(data[position].altitude)
         }
         viewHolder.lbDate.text = dateTimeFormat.format(data[position].time)
-        viewHolder.lbCoordinates.text = coordinatesFormat.format(data[position].latitude) + "  " + coordinatesFormat.format(data[position].longitude)
+        viewHolder.lbCoordinates.text =
+            coordinatesFormat.format(data[position].latitude) + "  " + coordinatesFormat.format(data[position].longitude)
     }
 
     override fun getItemCount() = data.size
 
-    fun updateData(newData: MutableList<LocationItem>) {
+    fun sortItems(sortType: SortType, ascending: Boolean) {
+        val newData = when (sortType) {
+            SortType.TIME -> data.sortedBy { it.time }
+            SortType.NAME -> data.sortedBy { it.name }
+            SortType.ALTITUDE -> data.sortedBy { it.altitude }
+        }.let {
+            if (ascending) it else it.asReversed()
+        }
+        updateData(newData)
+    }
+
+    fun setData(newData: List<LocationItem>) {
+        data.clear()
+        data.addAll(newData)
+        notifyDataSetChanged()
+    }
+
+    private fun updateData(newData: List<LocationItem>) {
         val oldIndices: MutableList<Int> = ArrayList()
         val shifts: MutableList<Int> = ArrayList()
 
@@ -110,12 +139,6 @@ class ListAdapter(
 
         data.clear()
         data.addAll(newData)
-    }
-
-    fun updateAfterImport(newData: List<LocationItem>) {
-        data.clear()
-        data.addAll(newData)
-        notifyDataSetChanged()
     }
 
 }

@@ -1,13 +1,11 @@
 package cz.milan_kostak.altitude.model
 
-import com.raizlabs.android.dbflow.annotation.Column
-import com.raizlabs.android.dbflow.annotation.PrimaryKey
-import com.raizlabs.android.dbflow.annotation.Table
-import com.raizlabs.android.dbflow.structure.BaseModel
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Table(database = DatabaseModel::class)
-
-class LocationItem : BaseModel() {
+@Entity(tableName = "location_item")
+class LocationItem {
 
     @Transient
     var saved = false
@@ -15,27 +13,27 @@ class LocationItem : BaseModel() {
     var set = false
 
     @Transient
-    @Column
-    @PrimaryKey(autoincrement = true)
+    @ColumnInfo(name = "id")
+    @PrimaryKey(autoGenerate = true)
     var id: Int = 0
 
-    @Column
+    @ColumnInfo(name = "name")
     var name: String = ""
 
     fun hasName(): Boolean {
         return name.isNotEmpty()
     }
 
-    @Column
+    @ColumnInfo(name = "time")
     var time: Long = 0
 
-    @Column
+    @ColumnInfo(name = "latitude")
     var latitude: Double = .0
 
-    @Column
+    @ColumnInfo(name = "longitude")
     var longitude: Double = .0
 
-    @Column
+    @ColumnInfo(name = "accuracy")
     var accuracy: Float = -1f
 
     fun hasAccuracy(): Boolean {
@@ -43,7 +41,7 @@ class LocationItem : BaseModel() {
     }
 
     // altitude in meters above the WGS 84 reference ellipsoid
-    @Column
+    @ColumnInfo(name = "altitude")
     var altitude: Double = -10_000.0
 
     fun hasAltitude(): Boolean {
@@ -51,14 +49,14 @@ class LocationItem : BaseModel() {
     }
 
     // altitude in meters above the EGM 2008 geoid
-    @Column
+    @ColumnInfo(name = "altitudeReal")
     var altitudeReal: Double = -10_000.0
 
     fun hasAltitudeReal(): Boolean {
         return altitudeReal != -10_000.0
     }
 
-    @Column
+    @ColumnInfo(name = "verticalAccuracy")
     var verticalAccuracy: Float = -1f
 
     fun hasVerticalAccuracy(): Boolean {
@@ -66,14 +64,14 @@ class LocationItem : BaseModel() {
     }
 
     // speed in km/h
-    @Column
+    @ColumnInfo(name = "speed")
     var speed: Float = -1f
 
     fun hasSpeed(): Boolean {
         return speed != -1f
     }
 
-    @Column
+    @ColumnInfo(name = "speedAccuracy")
     var speedAccuracy: Float = -1f
 
     fun hasSpeedAccuracy(): Boolean {
@@ -81,28 +79,28 @@ class LocationItem : BaseModel() {
     }
 
     // value in range <0;360>
-    @Column
+    @ColumnInfo(name = "bearing")
     var bearing: Float = -1f
 
     fun hasBearing(): Boolean {
         return bearing != -1f
     }
 
-    @Column
+    @ColumnInfo(name = "bearingAccuracy")
     var bearingAccuracy: Float = -1f
 
     fun hasBearingAccuracy(): Boolean {
         return bearingAccuracy != -1f
     }
 
-    @Column
+    @ColumnInfo(name = "provider")
     var provider: String = ""
 
     fun hasProvider(): Boolean {
         return provider.isNotEmpty()
     }
 
-    @Column
+    @ColumnInfo(name = "satellites")
     var satellites: Int = -1
 
     fun hasSatellites(): Boolean {

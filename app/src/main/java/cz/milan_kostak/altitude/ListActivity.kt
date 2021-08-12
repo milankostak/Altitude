@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
-
+import java.util.stream.Collectors
 
 class ListActivity : AppCompatActivity() {
 
@@ -191,18 +191,10 @@ class ListActivity : AppCompatActivity() {
     }
 
     private fun readTextFromUri(uri: Uri): String {
-        val stringBuilder = StringBuilder()
         contentResolver.openInputStream(uri)?.use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                var line: String? = reader.readLine()
-                while (line != null) {
-                    stringBuilder.append(line)
-                    line = reader.readLine()
-                }
-//                reader.lines()
-            }
+            return BufferedReader(InputStreamReader(inputStream)).lines().collect(Collectors.joining())
         }
-        return stringBuilder.toString()
+        return ""
     }
 
 }

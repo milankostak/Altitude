@@ -1,9 +1,8 @@
 package cz.milan_kostak.altitude
 
-import android.Manifest
-import android.annotation.SuppressLint
+import android.Manifest.permission.*
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -20,7 +19,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.room.Room
 import cz.milan_kostak.altitude.model.AppDatabase
 import cz.milan_kostak.altitude.model.Constants
@@ -106,15 +104,10 @@ class MainActivity : AppCompatActivity() {
         tvSatellites = findViewById(R.id.tvSatellites)
 
         btRequestPosition = findViewById(R.id.btRequestPosition)
-        btRequestPosition.setOnClickListener { updatePositionButtonHandler() }
+        btRequestPosition.setOnClickListener { requestPositionUpdate() }
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        listener = LocationListener { location ->
-            requestInProgress = false
-            loadingIcon.visibility = View.GONE
-            btRequestPosition.text = resources.getText(R.string.request_location)
-            setLocation(location)
-        }
+        listener = LocationListener { setLocation(it) }
 
         showListLauncher = getShowListLauncher()
     }
@@ -349,14 +342,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun requestPositionUpdate() {
         if (!requestInProgress) {
-            requestInProgress = true
-            loadingIcon.visibility = View.VISIBLE
-            btRequestPosition.text = resources.getText(R.string.stop_request)
-            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, null)
-            //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, listener);
+            val fineLocationPermission = checkSelfPermission(ACCESS_FINE_LOCATION) != PERMISSION_GRANTED
+            val coarseLocationPermission = checkSelfPermission(ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED
+            if (fineLocationPermission && coarseLocationPermission) {
+                requestPermissions(
+                    arrayOf(ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION),
+                    Constants.PERMISSIONS_REQUEST_LOCATION
+                )
+            } else {
+                requestInProgress = true
+                loadingIcon.visibility = View.VISIBLE
+                btRequestPosition.text = resources.getText(R.string.stop_request)
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    1000,
+                    0f,
+                    listener
+                )
+            }
         } else {
             locationManager.removeUpdates(listener)
             requestInProgress = false
@@ -365,27 +370,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updatePositionButtonHandler() {
-        // first check for permissions
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET), Constants.PERMISSIONS_REQUEST_LOCATION)
-        } else {
-            requestPositionUpdate()
-        }
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            Constants.PERMISSIONS_REQUEST_LOCATION -> {
-                // if request is cancelled, the result arrays are empty
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    requestPositionUpdate()
-                }
-                return
-            }
-            else -> {
-                // ignore all other requests
+        if (requestCode == Constants.PERMISSIONS_REQUEST_LOCATION) {
+            if (grantResults.firstOrNull() == PERMISSION_GRANTED) {
+                requestPositionUpdate()
             }
         }
     }
@@ -395,7 +384,7 @@ class MainActivity : AppCompatActivity() {
             val uri = "geo:" + currentLocationItem.latitude + "," + currentLocationItem.longitude
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            baseContext.startActivity(intent)
+            startActivity(intent)
         }
     }
 

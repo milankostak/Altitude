@@ -434,12 +434,12 @@ internal class RetrieveAltitudeTask(
             urlConnection = url.openConnection() as HttpsURLConnection
             urlConnection.connect()
             val inputStream = BufferedInputStream(urlConnection.inputStream)
-            val result = BufferedReader(InputStreamReader(inputStream)).lines().collect(Collectors.joining(""))
+            val result = BufferedReader(InputStreamReader(inputStream)).lines().collect(Collectors.joining())
 
-            val pattern = "EGM2008</a> = <font color=\"blue\">(.+?)</font>"
-            val r = Pattern.compile(pattern)
+            val regex = "EGM2008</a> = <font color=\"blue\">(.+?)</font>"
+            val pattern = Pattern.compile(regex)
 
-            val matcher = r.matcher(result)
+            val matcher = pattern.matcher(result)
             if (matcher.find()) {
                 return matcher.group(1)?.toFloat()
             }

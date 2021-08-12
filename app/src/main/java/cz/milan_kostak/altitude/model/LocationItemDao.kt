@@ -20,9 +20,6 @@ interface LocationItemDao {
     @Update
     fun update(locationItem: LocationItem): Int
 
-    @Update
-    fun update(locationItems: List<LocationItem>): Int
-
     @Delete
     fun delete(locationItem: LocationItem): Int
 

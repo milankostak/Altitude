@@ -23,20 +23,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.InputStreamReader
 import java.util.*
 
 
 class ListActivity : AppCompatActivity() {
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var viewAdapter: ListAdapter
-    private lateinit var viewManager: RecyclerView.LayoutManager
-
-    private lateinit var rbByTime: RadioButton
-    private lateinit var rbByName: RadioButton
-    private lateinit var rbByAltitude: RadioButton
 
     private lateinit var locationItemDao: LocationItemDao
 
@@ -54,25 +47,24 @@ class ListActivity : AppCompatActivity() {
         ).build()
         locationItemDao = db.locationItemDao()
 
-        val sortId = getPreferences(Context.MODE_PRIVATE).getInt(SORT_PREFERENCE_KEY, SortType.TIME.id)
+        val sortId = getPreferences(Context.MODE_PRIVATE).getInt(Constants.SORT_PREFERENCE_KEY, SortType.TIME.id)
         currentSort = SortType.getById(sortId)
 
-        val ascendingVal = getPreferences(Context.MODE_PRIVATE).getInt(SORT_ASCENDING_KEY, 1)
+        val ascendingVal = getPreferences(Context.MODE_PRIVATE).getInt(Constants.SORT_ASCENDING_KEY, 1)
         ascending = (ascendingVal == 1)
 
-        viewManager = LinearLayoutManager(this)
+        val viewManager = LinearLayoutManager(this)
         viewAdapter = ListAdapter(this, locationItemDao)
 
-        recyclerView = findViewById<RecyclerView>(R.id.locations_list).apply {
+        findViewById<RecyclerView>(R.id.locations_list).apply {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
         }
 
-        rbByTime = findViewById(R.id.sort_time)
-        rbByTime.isChecked = true
-        rbByName = findViewById(R.id.sort_name)
-        rbByAltitude = findViewById(R.id.sort_altitude)
+        val rbByTime: RadioButton = findViewById(R.id.sort_time)
+        val rbByName: RadioButton = findViewById(R.id.sort_name)
+        val rbByAltitude: RadioButton = findViewById(R.id.sort_altitude)
 
         when (currentSort) {
             SortType.TIME -> rbByTime.isChecked = true
@@ -80,28 +72,17 @@ class ListActivity : AppCompatActivity() {
             SortType.ALTITUDE -> rbByAltitude.isChecked = true
         }
 
-        rbByTime.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.TIME) }
-        rbByName.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.NAME) }
-        rbByAltitude.setOnCheckedChangeListener { _, checked -> if (checked) updateData(SortType.ALTITUDE) }
+        rbByTime.setOnCheckedChangeListener { _, checked -> if (checked) changeSort(SortType.TIME) }
+        rbByName.setOnCheckedChangeListener { _, checked -> if (checked) changeSort(SortType.NAME) }
+        rbByAltitude.setOnCheckedChangeListener { _, checked -> if (checked) changeSort(SortType.ALTITUDE) }
 
         CoroutineScope(Dispatchers.IO).launch {
             val newData = locationItemDao.getAll()
             runOnUiThread {
-                viewAdapter.setData(newData)
-                updateData(currentSort)
+                viewAdapter.setItems(newData)
+                updateData()
             }
         }
-    }
-
-    private fun updateData(sortType: SortType) {
-        currentSort = sortType
-        val pref = getPreferences(Context.MODE_PRIVATE)
-        with(pref.edit()) {
-            putInt(SORT_PREFERENCE_KEY, currentSort.id)
-            putInt(SORT_ASCENDING_KEY, if (ascending) 1 else 0)
-            apply()
-        }
-        viewAdapter.sortItems(currentSort, ascending)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -110,10 +91,25 @@ class ListActivity : AppCompatActivity() {
         return true
     }
 
+    private fun changeSort(sortType: SortType) {
+        currentSort = sortType
+        updateData()
+    }
+
     fun changeOrder(view: View) {
         val cbAscending: CheckBox = view.findViewById(R.id.action_item_checkbox)
         ascending = cbAscending.isChecked
-        updateData(currentSort)
+        updateData()
+    }
+
+    private fun updateData() {
+        val pref = getPreferences(Context.MODE_PRIVATE)
+        with(pref.edit()) {
+            putInt(Constants.SORT_PREFERENCE_KEY, currentSort.id)
+            putInt(Constants.SORT_ASCENDING_KEY, if (ascending) 1 else 0)
+            apply()
+        }
+        viewAdapter.sortItems(currentSort, ascending)
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
@@ -138,7 +134,7 @@ class ListActivity : AppCompatActivity() {
         val fileName = "altitude_backup_${Date().time}.json"
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/octet-stream"
+            type = "application/json"
             putExtra(Intent.EXTRA_TITLE, fileName)
         }
         startActivityForResult(intent, WRITE_REQUEST_CODE)
@@ -149,7 +145,7 @@ class ListActivity : AppCompatActivity() {
             // Filter to only show results that can be "opened",
             // such as a file (as opposed to a list of contacts or timezones)
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/octet-stream"
+            type = "application/json"
         }
         startActivityForResult(intent, READ_REQUEST_CODE)
     }
@@ -166,12 +162,11 @@ class ListActivity : AppCompatActivity() {
 
                 CoroutineScope(Dispatchers.IO).launch {
                     locationItemDao.insert(locations)
-                    // load imported locations from DB with correct sort
-                    val newData = locationItemDao.getAll()
+                    val allItems = locationItemDao.getAll()
 
                     runOnUiThread {
-                        viewAdapter.setData(newData)
-                        updateData(currentSort)
+                        viewAdapter.setItems(allItems)
+                        updateData()
                     }
                 }
             }
@@ -190,7 +185,6 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    @Throws(IOException::class)
     private fun readTextFromUri(uri: Uri): String {
         val stringBuilder = StringBuilder()
         contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -204,14 +198,6 @@ class ListActivity : AppCompatActivity() {
             }
         }
         return stringBuilder.toString()
-    }
-
-    companion object {
-        private const val READ_REQUEST_CODE: Int = 42
-        private const val WRITE_REQUEST_CODE: Int = 43
-
-        private const val SORT_PREFERENCE_KEY = "currentSort"
-        private const val SORT_ASCENDING_KEY = "ascendingSort"
     }
 
 }

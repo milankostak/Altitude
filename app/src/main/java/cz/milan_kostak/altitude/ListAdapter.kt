@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class ListAdapter(
@@ -103,15 +102,15 @@ class ListAdapter(
         updateData(newData)
     }
 
-    fun setData(newData: List<LocationItem>) {
+    fun setItems(newData: List<LocationItem>) {
         data.clear()
         data.addAll(newData)
         notifyDataSetChanged()
     }
 
     private fun updateData(newData: List<LocationItem>) {
-        val oldIndices: MutableList<Int> = ArrayList()
-        val shifts: MutableList<Int> = ArrayList()
+        val oldIndices = mutableListOf<Int>()
+        val shifts = mutableListOf<Int>()
 
         for (i in newData.indices) {
             for (j in data.indices) {
@@ -123,16 +122,15 @@ class ListAdapter(
             shifts.add(0)
         }
 
-        for (i in 0 until oldIndices.size) {
-            val newPosition = i
-            var oldPosition = oldIndices[i]
+        for (newPosition in 0 until oldIndices.size) {
+            var oldPosition = oldIndices[newPosition]
             oldPosition += shifts[oldPosition]
 
             if (oldPosition == newPosition) continue
 
             notifyItemMoved(oldPosition, newPosition)
 
-            for (j in 0 until oldIndices[i]) {
+            for (j in 0 until oldIndices[newPosition]) {
                 shifts[j]++
             }
         }

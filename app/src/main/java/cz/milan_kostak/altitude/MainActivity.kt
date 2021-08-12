@@ -110,19 +110,11 @@ class MainActivity : AppCompatActivity() {
         btRequestPosition.setOnClickListener { updatePositionButtonHandler() }
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        listener = object : LocationListener {
-            override fun onLocationChanged(location: Location) {
-                requestInProgress = false
-                loadingIcon.visibility = View.GONE
-                btRequestPosition.text = resources.getText(R.string.request_location)
-                setLocation(location)
-            }
-
-            override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {}
-
-            override fun onProviderEnabled(s: String) {}
-
-            override fun onProviderDisabled(s: String) {}
+        listener = LocationListener { location ->
+            requestInProgress = false
+            loadingIcon.visibility = View.GONE
+            btRequestPosition.text = resources.getText(R.string.request_location)
+            setLocation(location)
         }
     }
 
@@ -402,7 +394,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun openMap(view: View) {
+    fun openMap(@Suppress("UNUSED_PARAMETER") view: View) {
         if (currentLocationItem.set) {
             val uri = "geo:" + currentLocationItem.latitude + "," + currentLocationItem.longitude
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
